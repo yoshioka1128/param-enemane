@@ -1,0 +1,63 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+
+# データ読み込み
+df_result = pd.read_csv('output/optimal_consumer_combination.csv')
+df_pred = pd.read_csv('output/predicted_negawatt_hourly_stats.csv')
+
+# 結果格納用リスト
+hours = []
+procured_values = []
+total_means = []
+total_stds = []
+
+# 各時間帯ごとに集計
+for _, row in df_result.iterrows():
+    hour = int(row['Hour'])
+    procured = row['Procured']
+
+    # NaN の場合はスキップ
+    if pd.isna(row['Selected_Consumers']):
+        print(f"Hour {hour} は選択された需要家が存在しません。スキップします。")
+        continue
+
+    selected_consumers = row['Selected_Consumers'].split(';')
+
+    # 対象時間帯のデータから選択された需要家のみ抽出
+    df_hour = df_pred[df_pred['Hour'] == hour]
+    df_selected = df_hour[df_hour['Consumer'].isin(selected_consumers)]    # 合計平均と標準偏差（分散の加算）
+    total_mean = df_selected['Mean'].sum()
+    total_std = np.sqrt(np.sum(df_selected['Std'] ** 2))  # 独立性仮定
+
+    # リストに追加
+    hours.append(hour)
+    procured_values.append(procured)
+    total_means.append(total_mean)
+    total_stds.append(total_std)
+
+# プロット
+full_hours = list(range(1, 25))
+procured_dict = dict(zip(hours, procured_values))
+procured_filled = [procured_dict.get(h, 0) for h in full_hours]
+#plt.figure(figsize=(10, 6))
+plt.plot(full_hours, procured_filled, 'r-', label='Target Procured')
+plt.errorbar(hours, total_means, yerr=total_stds, fmt='o', linestyle='--', label='Selected Total Mean ± Std', capsize=5)
+
+plt.xlabel('Hour')
+plt.ylabel('Power (kW)')
+plt.title('Selected Consumer Combination vs Target')
+plt.xticks(full_hours)
+plt.grid(True)
+plt.legend()
+plt.ylim(0, 1000)
+plt.xlim(0, 24)
+
+# 保存
+os.makedirs('output', exist_ok=True)
+plt.savefig('output/consumer_selection_plot.png', dpi=300)
+plt.show()
+plt.close()
+
+print("output/consumer_selection_plot.png を出力しました。")
