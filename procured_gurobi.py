@@ -10,17 +10,17 @@ df_target = pd.read_csv('output/procured_negawatt_hour15_20_ratio0_80.csv')
 # 結果格納用
 result_rows = []
 
-# 各時間帯ごとに処理
-for _, row in df_target.iterrows():
-    hour = int(row['Hour'])
-    target = row['Procured']
+try:
+    # 各時間帯ごとに処理
+    for _, row in df_target.iterrows():
+        hour = int(row['Hour'])
+        target = row['Procured']
 
-    # 対象時間帯データ抽出
-    df_hour = df_pred[df_pred['Hour'] == hour]
-    consumers = df_hour['Consumer'].tolist()
-    means = df_hour['Mean'].tolist()
+        # 対象時間帯データ抽出
+        df_hour = df_pred[df_pred['Hour'] == hour]
+        consumers = df_hour['Consumer'].tolist()
+        means = df_hour['Mean'].tolist()
 
-    try:
         # モデル作成
         m = gp.Model()
         m.Params.OutputFlag = 0  # ログ非表示
@@ -58,9 +58,8 @@ for _, row in df_target.iterrows():
             'Difference': diff
         })
 
-    except gp.GurobiError as e:
-        print(f"Gurobi error at hour {hour}: {e}")
-        continue
+except gp.GurobiError as e:
+    print(f"Gurobi error at hour {hour}: {e}")
 
 # 出力保存
 df_result = pd.DataFrame(result_rows)
