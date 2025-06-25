@@ -1,3 +1,6 @@
+import matplotlib
+import tkinter
+matplotlib.use('TkAgg')
 import pandas as pd
 import numpy as np
 import os
@@ -96,7 +99,7 @@ plt.fill_between(x,
                  alpha=0.3, label=r'$\pm \sigma$')
 
 plt.plot(x, reduced_total.values, label=f'Reduced (ratio={ratio})', linestyle='--', marker='s', color='green')
-plt.plot(x, reduced_diff.values, label='Reduction Amount', linestyle=':', marker='x', color='orange')
+#plt.plot(x, reduced_diff.values, label='Reduction Amount', linestyle=':', marker='x', color='orange')
 
 # 実測（6月1日）があれば追加プロット
 actual_all = []
@@ -119,9 +122,9 @@ for _, row in df_kanto.iterrows():
 #    plt.plot(actual_mean.index.values, actual_mean.values, label='Measured (6/1)',
 #             linestyle='-', marker='D', color='red')
 
-plt.title('Power Consumption Forecast for June 1')
+plt.title('Electric Power Consumption Forecast for June 1')
 plt.xlabel('Time')
-plt.ylabel('Power Consumption [kWh]')
+plt.ylabel('Electric Power Consumption [kWh]')
 plt.xticks(x)
 plt.grid(True)
 plt.legend()

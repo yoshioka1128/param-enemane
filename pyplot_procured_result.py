@@ -59,8 +59,8 @@ full_hours = list(range(1, 25))
 procured_dict = dict(zip(hours, procured_values))
 procured_filled = [procured_dict.get(h, 0) for h in full_hours]
 #plt.figure(figsize=(10, 6))
-plt.plot(full_hours, procured_filled, 'r-', label='Target Procured')
-plt.errorbar(hours, total_means, yerr=total_stds, fmt='o', linestyle='--', label='Selected Total Mean ± Std', capsize=5)
+plt.plot(full_hours, procured_filled, color='tab:blue', linestyle='-', label='Target Procured')
+plt.errorbar(hours, total_means, yerr=total_stds, fmt='o', linestyle='--', color='red', label=r'Negawatt $\pm$ $\sigma$', capsize=5)
 
 # 各需要家の平均値ラインを追加
 for _, row in df_result.iterrows():
@@ -72,13 +72,13 @@ for _, row in df_result.iterrows():
         df_indiv = df_pred[(df_pred['Hour'] == hour) & (df_pred['Consumer'] == consumer)]
         if not df_indiv.empty:
             mean_val = df_indiv['Mean'].values[0]
-            plt.plot(hour, mean_val, marker='x', color=color_cycle[color_idx % len(color_cycle)], alpha=0.6)
+#            plt.plot(hour, mean_val, marker='x', color=color_cycle[color_idx % len(color_cycle)], alpha=0.6)
             color_idx += 1
 
 # 軸とラベル
-plt.xlabel('Hour')
-plt.ylabel('Power (kW)')
-plt.title('Selected Consumer Combination vs Target')
+plt.xlabel('Time')
+plt.ylabel('Negawatt [kW]')
+plt.title('Negawatt vs Target')
 plt.xticks(full_hours)
 plt.grid(True)
 plt.legend()
