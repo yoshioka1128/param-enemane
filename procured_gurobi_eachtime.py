@@ -5,7 +5,7 @@ import os
 
 # 入力ファイル
 df_pred = pd.read_csv('output/predicted_negawatt_hourly_stats.csv')
-df_target = pd.read_csv('output/procured_negawatt_hour15_20_ratio0_80.csv')
+df_target = pd.read_csv('output/procured_negawatt_hour11_21_ratio0_80.csv')
 
 # 結果格納用
 result_rows = []
