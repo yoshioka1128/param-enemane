@@ -85,3 +85,11 @@ for start_hour in group_start_hours:
             'Total_Mean': total,
             'Difference': diff
         })
+
+# 出力保存
+df_result = pd.DataFrame(result_rows)
+os.makedirs('output', exist_ok=True)
+def_result.to_csv('output/optimal_consumer_combination_3step.csv', index=False)
+
+
+print("optimal_consumer_combination.csv を出力しました。")

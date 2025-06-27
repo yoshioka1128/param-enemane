@@ -60,7 +60,7 @@ for _, row in df_target.iterrows():
 # 出力保存
 df_result = pd.DataFrame(result_rows)
 os.makedirs('output', exist_ok=True)
-df_result.to_csv('output/optimal_consumer_combination.csv', index=False)
+df_result.to_csv('output/optimal_consumer_combination_eachtime.csv', index=False)
 
 
 print("optimal_consumer_combination.csv を出力しました。")
