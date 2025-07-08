@@ -92,3 +92,56 @@ plt.show()
 plt.close()
 
 print("output/consumer_selection_plot.png を出力しました。")
+
+
+
+
+
+# 時間ごとに選ばれた需要家の Mean を積み上げ棒グラフにする
+fig, ax = plt.subplots(figsize=(12, 6))
+
+consumer_bar_data = {}  # consumer別の時間ごとのデータ
+unique_consumers = set()
+
+for _, row in df_result.iterrows():
+    hour = int(row['Hour'])
+    if pd.isna(row['Selected_Consumers']):
+        continue
+
+    selected_consumers = row['Selected_Consumers'].split(';')
+    df_hour = df_pred[df_pred['Hour'] == hour]
+    for consumer in selected_consumers:
+        df_c = df_hour[df_hour['Consumer'] == consumer]
+        if not df_c.empty:
+            mean_val = df_c['Mean'].values[0]
+            key = consumer
+            unique_consumers.add(consumer)
+            if key not in consumer_bar_data:
+                consumer_bar_data[key] = [0] * 24  # index: 0〜23 → hour 1〜24
+            consumer_bar_data[key][hour - 1] = mean_val  # hour は1始まり
+
+# スタック棒グラフの作成
+bottoms = np.zeros(24)
+for idx, consumer in enumerate(sorted(consumer_bar_data.keys())):
+    values = consumer_bar_data[consumer]
+    ax.bar(range(1, 25), values, bottom=bottoms, color=color_cycle[idx % len(color_cycle)],
+           edgecolor='white', linewidth=0.3, label=consumer if idx < 10 else None)  # 凡例は10個まで
+    bottoms += np.array(values)
+
+# total_mean を重ねて表示（確認用）
+ax.plot(hours, total_means, 'o--', color='black', label='Total Mean')
+
+ax.set_xlabel('Time')
+ax.set_ylabel('Negawatt [kW]')
+ax.set_title('Stacked Bar of Selected Consumers per Hour')
+ax.set_xticks(range(1, 25))
+ax.grid(True)
+ax.set_xlim(0.5, 24.5)
+#ax.legend(loc='upper right', fontsize='small', ncol=2)
+
+plt.tight_layout()
+plt.savefig('output/stacked_bar_selected_consumers.png', dpi=300)
+plt.show()
+plt.close()
+
+print("output/stacked_bar_selected_consumers.png を出力しました。")
