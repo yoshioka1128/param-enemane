@@ -125,11 +125,13 @@ bottoms = np.zeros(24)
 for idx, consumer in enumerate(sorted(consumer_bar_data.keys())):
     values = consumer_bar_data[consumer]
     ax.bar(range(1, 25), values, bottom=bottoms, color=color_cycle[idx % len(color_cycle)],
-           edgecolor='white', linewidth=0.3, label=consumer if idx < 10 else None)  # 凡例は10個まで
+#           edgecolor='white', linewidth=0.3, label=consumer if idx < 10 else None)  # 凡例は10個まで
+           edgecolor='white', linewidth=0.3)  # 凡例はなし    
     bottoms += np.array(values)
 
 # total_mean を重ねて表示（確認用）
-ax.plot(hours, total_means, 'o--', color='black', label='Total Mean')
+#ax.plot(hours, total_means, 'o--', color='black', label='Total Mean')
+ax.plot(full_hours, procured_filled, color='tab:blue', linestyle='-', label='Target Procured')
 
 ax.set_xlabel('Time')
 ax.set_ylabel('Negawatt [kW]')
@@ -137,7 +139,7 @@ ax.set_title('Stacked Bar of Selected Consumers per Hour')
 ax.set_xticks(range(1, 25))
 ax.grid(True)
 ax.set_xlim(0.5, 24.5)
-#ax.legend(loc='upper right', fontsize='small', ncol=2)
+ax.legend(loc='upper left')
 
 plt.tight_layout()
 plt.savefig('output/stacked_bar_selected_consumers.png', dpi=300)
