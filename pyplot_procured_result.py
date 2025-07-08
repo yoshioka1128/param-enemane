@@ -98,7 +98,7 @@ print("output/consumer_selection_plot.png を出力しました。")
 
 
 # 時間ごとに選ばれた需要家の Mean を積み上げ棒グラフにする
-fig, ax = plt.subplots(figsize=(12, 6))
+fig, ax = plt.subplots()
 
 consumer_bar_data = {}  # consumer別の時間ごとのデータ
 unique_consumers = set()
