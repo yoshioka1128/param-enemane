@@ -97,6 +97,25 @@ print("output/consumer_selection_plot.png を出力しました。")
 
 
 
+print("Hour\tSelected_Count\tPer_Consumer[kW]\tProcured[kW]")
+
+for hour in range(1, 25):
+    row = df_result[df_result['Hour'] == hour]
+    if row.empty or pd.isna(row.iloc[0]['Selected_Consumers']):
+        count = 0
+        procured = 0
+        per_consumer = 0
+    else:
+        selected = row.iloc[0]['Selected_Consumers'].split(';')
+        count = len(selected)
+        procured = row.iloc[0]['Procured']
+        per_consumer = procured / count if count > 0 else 0
+
+    print(f"{hour:>2}\t{count:>14}\t{per_consumer:>15.2f}\t{procured:>12.2f}")
+
+    
+
+
 # 時間ごとに選ばれた需要家の Mean を積み上げ棒グラフにする
 fig, ax = plt.subplots()
 
