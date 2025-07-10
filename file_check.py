@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 # CSV読み込み
-df_list = pd.read_csv('list_60.csv', encoding='cp932')
+df_list = pd.read_csv('list_30.csv', encoding='cp932')
 
 # 念のため空白除去
 df_list.columns = df_list.columns.str.strip()
