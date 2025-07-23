@@ -3,18 +3,18 @@ import matplotlib.pyplot as plt
 import os
 
 # データリスト読み込み
-df_list = pd.read_csv('OPEN_DATA/list_60.csv', encoding='cp932')
+df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
 df_list.columns = df_list.columns.str.strip()
-df_kanto = df_list[df_list['所在地'] == '関東']
 
-data_dir = 'OPEN_DATA/raw'
+data_dir = 'OPEN_DATA_60/raw'
 target_dates = pd.date_range(start='2013-04-01', end='2013-05-31')
 target_date_strs = target_dates.strftime('%Y/%m/%d')
 
 plt.figure()
 output_rows = []
+excluded_files = []
 
-for idx, row in df_kanto.iterrows():
+for idx, row in df_list.iterrows():
     file_name = row['ファイル名']
     consumer_name = file_name.replace('.csv', '')
 
@@ -23,11 +23,17 @@ for idx, row in df_kanto.iterrows():
         continue
 
     try:
-        df = pd.read_csv(path, encoding='utf-8-sig')
+        df = pd.read_csv(
+            path,
+            encoding='utf-8-sig',
+            usecols=[0, 1, 2],
+            header=0,
+            names=["計測日", "計測時間", "全体"]
+        )
         df = df[df['計測日'].isin(target_date_strs)]
-#        if len(df) == 61 * 24:
-#            print(f"{consumer_name}: matched rows = {len(df)}")
+
         if len(df) != 61 * 24:
+            excluded_files.append(file_name)
             continue
         
         pivot = df.pivot(index='計測時間', columns='計測日', values='全体')
@@ -50,6 +56,13 @@ for idx, row in df_kanto.iterrows():
         print(f"Error reading {file_name}: {e}")
         continue
 
+print('ファイル数', len(output_rows)/24)
+print('\n除外されたファイル（不足データ）:')
+for f in excluded_files:
+    print(f)
+
+exit()
+    
 # グラフ保存
 plt.xlabel('Hour of Day')
 plt.ylabel('Predicted Negawatt [kWh]')
