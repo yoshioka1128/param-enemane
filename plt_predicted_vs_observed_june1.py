@@ -2,11 +2,11 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-df_list = pd.read_csv('list_60.csv', encoding='cp932')
+df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
 df_list.columns = df_list.columns.str.strip()
 df_kanto = df_list[df_list['所在地'] == '関東']
 
-dirs = ['raw', 'raw2']
+dirs = ['OPEN_DATA_60/raw']
 all_data = []
 target_dates = pd.date_range('2013-04-01', '2013-05-31').strftime('%Y/%m/%d')
 predict_date = '2013/06/01'

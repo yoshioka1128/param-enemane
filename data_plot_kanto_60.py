@@ -2,11 +2,11 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
-df_list = pd.read_csv('list_60.csv', encoding='cp932')
+df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
 df_list.columns = df_list.columns.str.strip()
 df_kanto = df_list[df_list['所在地'] == '関東']
 
-dirs = ['raw', 'raw2']
+dirs = ['OPEN_DATA_60/raw']
 all_data = []
 target_dates = pd.date_range('2013-04-01', '2013-05-31').strftime('%Y/%m/%d')
 predict_date = '2013/06/01'
@@ -24,7 +24,13 @@ for _, row in df_kanto.iterrows():
         continue
 
     try:
-        df = pd.read_csv(file_path, encoding='utf-8-sig')
+        df = pd.read_csv(
+            file_path,
+            encoding='utf-8-sig',
+            usecols=[0, 1, 2],
+            header=0,
+            names=["計測日", "計測時間", "全体"]
+        )
     except:
         continue
 
@@ -39,6 +45,8 @@ for _, row in df_kanto.iterrows():
     pivot = df_range.pivot(index='計測日', columns='計測時間', values='全体')
     all_data.append(pivot)
 
+print('ファイル数', len(all_data))
+    
 # 全体データ結合（日付 x 時間）
 if not all_data:
     print("予測用データが見つかりませんでした。")
@@ -56,7 +64,7 @@ else:
     plt.fill_between(x,
                      (hourly_mean - hourly_std).values,
                      (hourly_mean + hourly_std).values,
-                     alpha=0.3, label=f'$\pm$ $\sigma$')
+                     alpha=0.3, label=r'$\pm$ $\sigma$')
     
     # 実測（6月1日）があれば追加プロット
     actual_all = []
@@ -81,7 +89,7 @@ else:
         plt.plot(actual_mean.index.values, actual_mean.values, label='Measured (6/1)',
                  linestyle='--', marker='x', color='red')
 
-    plt.title('Electricity demand forecast for June 1 (Kanto): moving average'+f'$\pm$ $\sigma$')
+    plt.title('Electricity demand forecast for June 1 (Kanto): moving average'+r'$\pm$ $\sigma$')
     plt.xlabel('Time')
     plt.ylabel('Average usage [kWh]')
 
