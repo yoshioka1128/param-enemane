@@ -64,8 +64,8 @@ if len(data_matrix) > 1:
     cov_df = pd.DataFrame(cov_matrix, index=consumer_names, columns=consumer_names)
     
     # CSVとして保存
-    cov_df.to_csv(f"output/covariance_matrix_{target_hour}.csv", encoding='utf-8-sig')
-    print(f"共分散行列を 'covariance_matrix_{target_hour}.csv' に保存しました。e")
+    cov_df.to_csv(f"output/covariance_matrix_{target_hour}_2023.csv", encoding='utf-8-sig')
+    print(f"共分散行列を 'covariance_matrix_{target_hour}_2023.csv' に保存しました。e")
 
     # ヒートマップとして保存
     plt.figure()
@@ -75,8 +75,8 @@ if len(data_matrix) > 1:
     plt.ylabel("Consumer")
     plt.title(f"Covariance in the {target_hour} time slot")
     plt.tight_layout()
-    plt.savefig(f"output/covariance_heatmap_{target_hour}.png")
-    print(f"ヒートマップを 'covariance_heatmap_{target_hour}.png' として保存しました。")
+    plt.savefig(f"output/covariance_heatmap_{target_hour}_2023.png")
+    print(f"ヒートマップを 'covariance_heatmap_{target_hour}_2023.png' として保存しました。")
     plt.show()
 
 else:
