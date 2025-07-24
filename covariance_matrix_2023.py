@@ -3,7 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-import utils
+from utils import (
+    load_and_clean_csv, is_valid_period, filter_target_dates,
+    make_pivot, extract_consumer_name
+)
 
 # 入力（ターミナルから時間帯を指定）
 user_input = input("共分散行列を計算したい時間帯（0〜23）を入力してください（未入力なら12）: ")
@@ -28,50 +31,26 @@ df_list.columns = df_list.columns.str.strip()
 
 for _, row in df_list.iterrows():
     file_name = row['ファイル名']
-    consumer_name = file_name.replace('.csv', '')
-    file_path = os.path.join(data_dir, file_name)
+    consumer_name = extract_consumer_name(file_name)
+    path = os.path.join(data_dir, file_name)
 
-    if not os.path.isfile(file_path):
+    df_raw = load_and_clean_csv(path)
+    if df_raw is None or not is_valid_period(df_raw, target_start, target_end):
         continue
 
-    try:
-        df_raw = pd.read_csv(
-            file_path,
-            encoding='utf-8-sig',
-            usecols=[0, 1, 2],
-            header=0,
-            names=["計測日", "計測時間", "全体"]
-        )
-        # 計測日を日付型に変換
-        df_raw["計測日"] = pd.to_datetime(df_raw["計測日"], errors='coerce', format='%Y/%m/%d')
-        df_raw = df_raw.dropna(subset=["計測日"])
-
-        # 対象期間すべてをカバーしていない場合は除外
-        min_date = df_raw["計測日"].min()
-        max_date = df_raw["計測日"].max()
-        if min_date > target_start or max_date < target_end:
-            continue
-
-        # 対象期間のデータに絞る
-        df = df_raw[df_raw["計測日"].isin(target_dates)]
-        if len(df) != 61 * 24:
-            excluded_files.append(f"{file_name}（データ不足: {len(df)} 行）")
-            continue
-
-        pivot = df.pivot(index='計測時間', columns='計測日', values='全体')
-        
-        # 時間表記を統一（例：'12:00' → '12'）
-        pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
-
-        if target_hour not in pivot.index or pivot.shape[1] != 61:
-            continue
-
-        data_matrix.append(pivot.loc[target_hour].values)
-        consumer_names.append(consumer_name)
-
-    except Exception as e:
-        print(f"Error reading {file_name}: {e}")
+    df = filter_target_dates(df_raw, target_dates)
+    if df is None:
+        excluded_files.append(f"{file_name}（データ不足）")
         continue
+
+    pivot = make_pivot(df)
+    pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
+
+    if target_hour not in pivot.index or pivot.shape[1] != 61:
+        continue
+
+    data_matrix.append(pivot.loc[target_hour].values)
+    consumer_names.append(consumer_name)
 
 # 結果出力
 print(f"有効な消費者数（{target_hour}時）: {len(data_matrix)}")

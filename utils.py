@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import pandas as pd
 
 np.random.seed(1)
 
@@ -18,3 +20,42 @@ plt.rcParams.update({
     "axes.titlesize": 18,        # タイトル
 })
 
+def load_and_clean_csv(file_path):
+    """CSVを読み込んで、日付列を処理し、NaT行を除外"""
+    if not os.path.isfile(file_path):
+        return None
+
+    try:
+        df = pd.read_csv(
+            file_path,
+            encoding='utf-8-sig',
+            usecols=[0, 1, 2],
+            header=0,
+            names=["計測日", "計測時間", "全体"]
+        )
+        df["計測日"] = pd.to_datetime(df["計測日"], errors='coerce', format='%Y/%m/%d')
+        df = df.dropna(subset=["計測日"])
+        return df
+    except Exception as e:
+        print(f"Error reading {file_path}: {e}")
+        return None
+
+def is_valid_period(df, target_start, target_end):
+    """対象期間すべてをカバーしているかチェック"""
+    min_date = df["計測日"].min()
+    max_date = df["計測日"].max()
+    return min_date <= target_start and max_date >= target_end
+
+def filter_target_dates(df, target_dates, expected_len=1464):
+    """対象日のデータだけに絞り、期待する行数があるかを確認"""
+    df_filtered = df[df["計測日"].isin(target_dates)]
+    if len(df_filtered) != expected_len:
+        return None
+    return df_filtered
+
+def make_pivot(df):
+    """日毎のピボット（時間×日）を作成"""
+    return df.pivot(index='計測時間', columns='計測日', values='全体')
+
+def extract_consumer_name(file_name):
+    return file_name.replace('.csv', '')

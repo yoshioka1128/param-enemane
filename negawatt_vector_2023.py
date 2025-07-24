@@ -1,6 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+from utils import (
+    load_and_clean_csv, is_valid_period, filter_target_dates,
+    make_pivot, extract_consumer_name
+)
 
 # データリスト読み込み
 df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
@@ -21,53 +25,31 @@ excluded_files = []
 
 for idx, row in df_list.iterrows():
     file_name = row['ファイル名']
-    consumer_name = file_name.replace('.csv', '')
-
+    consumer_name = extract_consumer_name(file_name)
     path = os.path.join(data_dir, file_name)
-    if not os.path.isfile(path):
+
+    df_raw = load_and_clean_csv(path)
+    if df_raw is None or not is_valid_period(df_raw, target_start, target_end):
         continue
 
-    try:
-        df_raw = pd.read_csv(
-            path,
-            encoding='utf-8-sig',
-            usecols=[0, 1, 2],
-            header=0,
-            names=["計測日", "計測時間", "全体"]
-        )
-        # 計測日を日付型に変換
-        df_raw["計測日"] = pd.to_datetime(df_raw["計測日"], errors='coerce', format='%Y/%m/%d')
-        df_raw = df_raw.dropna(subset=["計測日"])
-
-        # 対象期間すべてをカバーしていない場合は除外
-        min_date = df_raw["計測日"].min()
-        max_date = df_raw["計測日"].max()
-        if min_date > target_start or max_date < target_end:
-            continue
-
-        # 対象期間のデータに絞る
-        df = df_raw[df_raw["計測日"].isin(target_dates)]
-        if len(df) != 61 * 24:
-            excluded_files.append(f"{file_name}（データ不足: {len(df)} 行）")
-            continue
-
-        pivot = df.pivot(index='計測時間', columns='計測日', values='全体')
-        hourly_mean = pivot.mean(axis=1)
-        hourly_std = pivot.std(axis=1)
-
-        x = hourly_mean.index.astype(int).values
-        y = hourly_mean.values
-        yerr = hourly_std.values
-
-        plt.plot(x, y, label=consumer_name)
-        plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
-
-        for h, m, s in zip(x, y, yerr):
-            output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
-
-    except Exception as e:
-        print(f"Error reading {file_name}: {e}")
+    df = filter_target_dates(df_raw, target_dates)
+    if df is None:
+        excluded_files.append(f"{file_name}（データ不足）")
         continue
+
+    pivot = make_pivot(df)
+    hourly_mean = pivot.mean(axis=1)
+    hourly_std = pivot.std(axis=1)
+
+    x = hourly_mean.index.astype(int).values
+    y = hourly_mean.values
+    yerr = hourly_std.values
+
+    plt.plot(x, y, label=consumer_name)
+    plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
+
+    for h, m, s in zip(x, y, yerr):
+        output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
 
 # 結果出力
 print('有効な消費者数:', int(len(output_rows) / 24))
