@@ -69,8 +69,7 @@ print(f"有効な消費者数（{target_hour}時）: {len(data_matrix)}")
 
 # 共分散行列の計算と表示
 if len(data_matrix) > 1:
-    cov_matrix = np.cov(np.array(data_matrix))
-#    cov_matrix = np.cov(np.array(data_matrix), ddof=0)
+    cov_matrix = np.cov(np.array(data_matrix), ddof=0) # divided by n
     cov_df = pd.DataFrame(cov_matrix, index=consumer_names, columns=consumer_names)
     
     # CSVとして保存
