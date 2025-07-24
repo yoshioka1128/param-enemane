@@ -42,7 +42,6 @@ for idx, row in df_list.iterrows():
 
         # 対象期間すべてをカバーしていない場合は除外
         if min_date > target_start or max_date < target_end:
-#            excluded_files.append(f"{file_name}（範囲外: {min_date.date()}～{max_date.date()}）")
             continue
 
         # 対象期間で再フィルタ
@@ -78,7 +77,7 @@ for f in excluded_files:
     print(f)
 
 # グラフ保存
-plt.xlabel('Hour of Day')
+plt.xlabel('Time')
 plt.ylabel('Predicted Negawatt [kWh]')
 plt.title('Predicted Negawatt on June 1')
 plt.grid(True)
