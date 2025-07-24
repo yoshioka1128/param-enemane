@@ -8,6 +8,7 @@ df_list.columns = df_list.columns.str.strip()
 
 data_dir = 'OPEN_DATA_60/raw'
 plt.figure()
+plt.subplots_adjust(left=0.1, right=0.97)
 output_rows = []
 excluded_files = []
 
@@ -89,9 +90,12 @@ for f in excluded_files:
 print(f'\n除外されたファイルの数:', len(excluded_files))
 
 # グラフ保存
-plt.xlabel('Hour of Day')
+plt.xlabel('Time')
+plt.xlim(1,24)
+plt.xticks(range(1, 25))
 plt.ylabel('Predicted Negawatt [kWh]')
-plt.title('Predicted Negawatt (Apr 1 - May 31, all years)')
+plt.ylim(-1,800)
+#plt.title('Predicted Negawatt (Apr 1 - May 31, all years)')
 plt.grid(True)
 os.makedirs('output', exist_ok=True)
 plt.savefig("output/predicted_negawatt_apr_may_all_years.png")
