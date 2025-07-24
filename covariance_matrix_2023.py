@@ -65,15 +65,16 @@ for _, row in df_list.iterrows():
         continue
 
 print(f"有効な消費者数（{target_hour}時）: {len(data_matrix)}")
-print("有効な消費者名:", consumer_names)
+#print("有効な消費者名:", len(consumer_names))
 
 # 共分散行列の計算と表示
 if len(data_matrix) > 1:
     cov_matrix = np.cov(np.array(data_matrix))
+#    cov_matrix = np.cov(np.array(data_matrix), ddof=0)
     cov_df = pd.DataFrame(cov_matrix, index=consumer_names, columns=consumer_names)
     
     # CSVとして保存
-    cov_df.to_csv(f"covariance_matrix_{target_hour}.csv", encoding='utf-8-sig')
+    cov_df.to_csv(f"output/covariance_matrix_{target_hour}.csv", encoding='utf-8-sig')
     print(f"共分散行列を 'covariance_matrix_{target_hour}.csv' に保存しました。e")
 
     # ヒートマップとして保存
@@ -84,7 +85,7 @@ if len(data_matrix) > 1:
     plt.ylabel("Consumer")
     plt.title(f"Covariance in the {target_hour} time slot")
     plt.tight_layout()
-    plt.savefig(f"covariance_heatmap_{target_hour}.png")
+    plt.savefig(f"output/covariance_heatmap_{target_hour}.png")
     print(f"ヒートマップを 'covariance_heatmap_{target_hour}.png' として保存しました。")
     plt.show()
 
