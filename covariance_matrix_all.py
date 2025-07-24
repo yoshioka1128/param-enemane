@@ -20,7 +20,6 @@ target_dates = pd.date_range(start=target_start, end=target_end)
 # データ格納
 data_matrix = []
 consumer_names = []
-excluded_files = []
 
 # ファイルリスト読み込み
 df_list = pd.read_csv(list_path, encoding='cp932')
@@ -42,20 +41,12 @@ for _, row in df_list.iterrows():
             header=0,
             names=["計測日", "計測時間", "全体"]
         )
-        # 計測日を日付型に変換
         df_raw["計測日"] = pd.to_datetime(df_raw["計測日"], errors='coerce', format='%Y/%m/%d')
         df_raw = df_raw.dropna(subset=["計測日"])
-
-        # 対象期間すべてをカバーしていない場合は除外
-        min_date = df_raw["計測日"].min()
-        max_date = df_raw["計測日"].max()
-        if min_date > target_start or max_date < target_end:
-            continue
 
         # 対象期間のデータに絞る
         df = df_raw[df_raw["計測日"].isin(target_dates)]
         if len(df) != 61 * 24:
-            excluded_files.append(f"{file_name}（データ不足: {len(df)} 行）")
             continue
 
         pivot = df.pivot(index='計測時間', columns='計測日', values='全体')
@@ -73,11 +64,8 @@ for _, row in df_list.iterrows():
         print(f"Error reading {file_name}: {e}")
         continue
 
-# 結果出力
 print(f"有効な消費者数（{target_hour}時）: {len(data_matrix)}")
-print('\n除外されたファイル（期間不一致やデータ不足）:')
-for f in excluded_files:
-    print(f)
+#print("有効な消費者名:", len(consumer_names))
 
 # 共分散行列の計算と表示
 if len(data_matrix) > 1:

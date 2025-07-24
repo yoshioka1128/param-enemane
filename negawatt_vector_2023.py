@@ -14,6 +14,8 @@ target_dates = pd.date_range(start=target_start, end=target_end)
 target_date_strs = target_dates.strftime('%Y/%m/%d')
 
 plt.figure()
+
+# データ格納
 output_rows = []
 excluded_files = []
 
@@ -37,17 +39,14 @@ for idx, row in df_list.iterrows():
         df_raw["計測日"] = pd.to_datetime(df_raw["計測日"], errors='coerce', format='%Y/%m/%d')
         df_raw = df_raw.dropna(subset=["計測日"])
 
+        # 対象期間すべてをカバーしていない場合は除外
         min_date = df_raw["計測日"].min()
         max_date = df_raw["計測日"].max()
-
-        # 対象期間すべてをカバーしていない場合は除外
         if min_date > target_start or max_date < target_end:
             continue
 
-        # 対象期間で再フィルタ
+        # 対象期間のデータに絞る
         df = df_raw[df_raw["計測日"].isin(target_dates)]
-
-        # 61日×24時間 = 1464行あるか
         if len(df) != 61 * 24:
             excluded_files.append(f"{file_name}（データ不足: {len(df)} 行）")
             continue
@@ -71,7 +70,7 @@ for idx, row in df_list.iterrows():
         continue
 
 # 結果出力
-print('有効ファイル数:', int(len(output_rows) / 24))
+print('有効な消費者数:', int(len(output_rows) / 24))
 print('\n除外されたファイル（期間不一致やデータ不足）:')
 for f in excluded_files:
     print(f)
