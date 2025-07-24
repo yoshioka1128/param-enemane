@@ -59,3 +59,22 @@ def make_pivot(df):
 
 def extract_consumer_name(file_name):
     return file_name.replace('.csv', '')
+
+def is_complete_year_data(df, target_dates, expected_rows):
+    """指定された日付範囲に対するデータが完全に揃っているか判定"""
+    df_period = df[df["計測日"].isin(target_dates)]
+    return df_period if len(df_period) == expected_rows else None
+
+def calc_hourly_stats(pivot):
+    """ピボットから時間ごとの平均と標準偏差を計算"""
+    hourly_mean = pivot.mean(axis=1)
+    hourly_std = pivot.std(axis=1)
+    x = hourly_mean.index.astype(int).values
+    y = hourly_mean.values
+    yerr = hourly_std.values
+    return x, y, yerr
+
+def plot_hourly_stats(x, y, yerr, label):
+    """エラーバーつきの折れ線グラフを描画"""
+    plt.plot(x, y, label=label)
+    plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)

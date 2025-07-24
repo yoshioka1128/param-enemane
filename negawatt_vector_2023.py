@@ -23,7 +23,7 @@ plt.figure()
 output_rows = []
 excluded_files = []
 
-for idx, row in df_list.iterrows():
+for _, row in df_list.iterrows():
     file_name = row['ファイル名']
     consumer_name = extract_consumer_name(file_name)
     path = os.path.join(data_dir, file_name)
