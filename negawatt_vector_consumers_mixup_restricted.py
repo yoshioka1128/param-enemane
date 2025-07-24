@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import random
 import numpy as np
+import utils
 
 # データリスト読み込み
 df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
