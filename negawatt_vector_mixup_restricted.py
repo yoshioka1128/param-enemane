@@ -31,7 +31,7 @@ consumer_profiles_by_contract = {'低圧': [], '高圧': [], '高圧小口': []}
 
 for _, row in df_list.iterrows():
     file_name = row['ファイル名']
-    consumer_name = file_name.replace('.csv', '')
+    consumer_name = extract_consumer_name(file_name)
     contract_type = row['契約電力']
     path = os.path.join(data_dir, file_name)
 
@@ -63,17 +63,19 @@ for _, row in df_list.iterrows():
         for h, m, s in zip(x, y, yerr):
             output_rows.append({'Consumer': consumer_name, 'Year': year, 'Hour': int(h), 'Mean': m, 'Std': s})
 
-        consumer_profiles_by_contract[contract_type].append((x, y, yerr))
+        consumer_profiles_by_contract[contract_type].append((x, y, yerr, consumer_name, year))
         file_valid = True
 
     if not file_valid:
         excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
 
 # Mixupによる合成（契約電力区分ごとに）
+random.seed(42)
 mixup_index = 1
 for contract_type, profiles in consumer_profiles_by_contract.items():
     num_original = len(profiles)
-    num_synthetic = int(num_original * 2.5)
+    num_synthetic = int(num_original * 2.4)
+    print(f"[{contract_type}] original: {num_original}, mixup: {num_synthetic}")
 
     for i in range(num_synthetic):
         if len(profiles) < 2:
@@ -83,20 +85,27 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         x = a[0]
         y_mix = lam * a[1] + (1 - lam) * b[1]
         yerr_mix = np.sqrt(lam * a[2]**2 + (1 - lam) * b[2]**2)
+
+        a_name = f"{a[3]}_{a[4]}"  # 例: "Consumer_A_2022"
+        b_name = f"{b[3]}_{b[4]}"
+        year_info = f"Synthetic ({a_name} + {b_name})"
+
         label = f"Mixup_{mixup_index} ({contract_type})"
+        year_info = f"Synthetic ({a_name} + {b_name})"
         mixup_index += 1
         plt.plot(x, y_mix, label=label, linestyle='--')
         plt.fill_between(x, y_mix - yerr_mix, y_mix + yerr_mix, alpha=0.1)
 
         for h, m, s in zip(x, y_mix, yerr_mix):
-            output_rows.append({'Consumer': label, 'Year': 'Synthetic', 'Hour': int(h), 'Mean': m, 'Std': s})
+            output_rows.append({'Consumer': label, 'Year': year_info, 'Hour': int(h), 'Mean': m, 'Std': s})
 
 # 結果出力
-valid_file_count = len(set([row['Consumer'] + str(row['Year']) for row in output_rows if row['Year'] != 'Synthetic']))
-synthetic_count = len(set([row['Consumer'] for row in output_rows if row['Year'] == 'Synthetic']))
+valid_file_count = len(set(row['Consumer'] + str(row['Year']) for row in output_rows if not str(row['Year']).startswith('Synthetic')))
+synthetic_count = len(set(row['Consumer'] for row in output_rows if str(row['Year']).startswith('Synthetic')))
 print('有効ファイル数（年ごとの組み合わせ）:', valid_file_count)
 print('合成された需要家数:', synthetic_count)
-print(f'\n除外されたファイルの数:', len(excluded_files))
+print('合計需要家数:', valid_file_count + synthetic_count)
+print('除外されたファイルの数:', len(excluded_files))
 
 # グラフ保存
 plt.xlabel('Time')
