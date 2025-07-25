@@ -68,7 +68,7 @@ def is_complete_year_data(df, target_dates, expected_rows):
 def calc_hourly_stats(pivot):
     """ピボットから時間ごとの平均と標準偏差を計算"""
     hourly_mean = pivot.mean(axis=1)
-    hourly_std = pivot.std(axis=1)
+    hourly_std = pivot.std(axis=1, ddof=0)
     x = hourly_mean.index.astype(int).values
     y = hourly_mean.values
     yerr = hourly_std.values
