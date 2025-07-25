@@ -54,7 +54,7 @@ for _, row in df_list.iterrows():
         if len(df_period) != expected_rows:
             continue
 
-        pivot = df_period.pivot(index='計測時間', columns='計測日', values='全体')
+        pivot = make_pivot(df_period)        
         x, y, yerr = calc_hourly_stats(pivot)
         plot_hourly_stats(x, y, yerr, label=f"{consumer_name} ({year})")
 

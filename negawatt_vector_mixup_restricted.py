@@ -51,12 +51,9 @@ for _, row in df_list.iterrows():
         target_end = pd.to_datetime(f"{year}-{target_end_md}")
         target_dates = pd.date_range(start=target_start, end=target_end)
 
-        df_period = df_raw[df_raw["計測日"].isin(target_dates)]
+        df_period = is_complete_year_data(df_raw, target_dates, expected_rows)
 
-        if len(df_period) != expected_rows:
-            continue
-
-        pivot = df_period.pivot(index='計測時間', columns='計測日', values='全体')
+        pivot = make_pivot(df_period)
         x, y, yerr = calc_hourly_stats(pivot)
         plot_hourly_stats(x, y, yerr, label=f"{consumer_name} ({year})")
 

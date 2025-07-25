@@ -4,8 +4,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 from utils import (
-    load_and_clean_csv, is_valid_period, filter_target_dates,
-    make_pivot, extract_consumer_name
+    load_and_clean_csv,
+    is_valid_period,
+    filter_target_dates,
+    make_pivot,
+    extract_consumer_name
 )
 
 # 入力（ターミナルから時間帯を指定）
@@ -60,12 +63,12 @@ for f in excluded_files:
 
 # 共分散行列の計算と表示
 if len(data_matrix) > 1:
-    cov_matrix = np.cov(np.array(data_matrix), bias=True) # divided by n
+    cov_matrix = np.cov(np.array(data_matrix), ddof=True) # divided by n
     cov_df = pd.DataFrame(cov_matrix, index=consumer_names, columns=consumer_names)
     
     # CSVとして保存
-    cov_df.to_csv(f"output/covariance_matrix_{target_hour}_2023.csv", encoding='utf-8-sig')
-    print(f"共分散行列を 'covariance_matrix_{target_hour}_2023.csv' に保存しました。e")
+    cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_2023.csv", encoding='utf-8-sig')
+    print(f"共分散行列を 'covariance_matrix_time{target_hour}_2023.csv' に保存しました。e")
 
     # ヒートマップとして保存
     plt.figure()
@@ -73,10 +76,10 @@ if len(data_matrix) > 1:
                 cbar_kws={'label': 'Covariance'})
     plt.xlabel("Consumer")
     plt.ylabel("Consumer")
-    plt.title(f"Covariance in the {target_hour} time slot")
+    plt.title(f"Covariance Matrix - Time {target_hour}")
     plt.tight_layout()
-    plt.savefig(f"output/covariance_heatmap_{target_hour}_2023.png")
-    print(f"ヒートマップを 'covariance_heatmap_{target_hour}_2023.png' として保存しました。")
+    plt.savefig(f"output/covariance_heatmap_time{target_hour}_2023.png")
+    print(f"ヒートマップを 'covariance_heatmap_time{target_hour}_2023.png' として保存しました。")
     plt.show()
 
 else:

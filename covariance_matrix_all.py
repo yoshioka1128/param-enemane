@@ -62,7 +62,6 @@ for _, row in df_list.iterrows():
 
         # 時間表記を2桁に揃える（例：'1' → '01'）
         pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
-
         if target_hour not in pivot.index or pivot.shape[1] != 61:
             continue  # データ不足
 
@@ -79,12 +78,12 @@ print(f'\n除外されたファイルの数:', len(excluded_files))
 
 # 共分散行列の計算と表示
 if len(data_matrix) > 1:
-    cov_matrix = np.cov(np.array(data_matrix), bias=True) # divided by n
+    cov_matrix = np.cov(np.array(data_matrix), ddof=0) # divided by n
     cov_df = pd.DataFrame(cov_matrix, index=consumer_names, columns=consumer_names)
     
     # CSVとして保存
-    cov_df.to_csv(f"output/covariance_matrix_{target_hour}_all.csv", encoding='utf-8-sig')
-    print(f"共分散行列を 'covariance_matrix_{target_hour}_all.csv' に保存しました。e")
+    cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_all.csv", encoding='utf-8-sig')
+    print(f"共分散行列を 'covariance_matrix_time{target_hour}_all.csv' に保存しました。e")
 
     # ヒートマップとして保存
     plt.figure()
@@ -92,10 +91,10 @@ if len(data_matrix) > 1:
                 cbar_kws={'label': 'Covariance'})
     plt.xlabel("Consumer")
     plt.ylabel("Consumer")
-    plt.title(f"Covariance in the {target_hour} time slot")
+    plt.title(f"Covariance Matrix - Time {target_hour}")
     plt.tight_layout()
-    plt.savefig(f"output/covariance_heatmap_all_{target_hour}_all.png")
-    print(f"ヒートマップを 'covariance_heatmap_all_{target_hour}_all.png' として保存しました。")
+    plt.savefig(f"output/covariance_heatmap_time{target_hour}_all.png")
+    print(f"ヒートマップを 'covariance_heatmap_time{target_hour}_all.png' として保存しました。")
     plt.show()
 
 else:
