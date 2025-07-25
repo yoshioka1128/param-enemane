@@ -75,9 +75,7 @@ for _, row in df_list.iterrows():
 
 # 結果出力
 print(f"有効な消費者数（{target_hour}時）: {len(data_matrix)}")
-print('\n除外されたファイル（期間不一致やデータ不足）:')
-for f in excluded_files:
-    print(f)
+print(f'\n除外されたファイルの数:', len(excluded_files))
 
 # 共分散行列の計算と表示
 if len(data_matrix) > 1:

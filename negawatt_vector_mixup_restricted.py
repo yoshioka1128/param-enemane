@@ -63,7 +63,7 @@ for _, row in df_list.iterrows():
 
             pivot = df_period.pivot(index='計測時間', columns='計測日', values='全体')
             hourly_mean = pivot.mean(axis=1)
-            hourly_std = pivot.std(axis=1)
+            hourly_std = pivot.std(axis=1, ddof=0)
 
             x = hourly_mean.index.astype(int).values
             y = hourly_mean.values

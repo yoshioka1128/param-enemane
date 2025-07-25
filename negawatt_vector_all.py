@@ -61,9 +61,6 @@ for _, row in df_list.iterrows():
 # 結果出力
 valid_file_count = len(set([row['Consumer'] + str(row['Year']) for row in output_rows]))
 print('有効ファイル数（年ごとの組み合わせ）:', valid_file_count)
-print('\n除外されたファイル（期間不一致やデータ不足）:')
-for f in excluded_files:
-    print(f)
 print(f'\n除外されたファイルの数:', len(excluded_files))
 
 # グラフ保存

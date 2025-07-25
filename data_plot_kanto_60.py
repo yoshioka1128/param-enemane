@@ -54,7 +54,7 @@ else:
     df_all = pd.concat(all_data)
     df_mean = df_all.groupby(df_all.index).mean()  # 同日が複数あれば平均
     hourly_mean = df_mean.mean(axis=0)
-    hourly_std = df_mean.std(axis=0)
+    hourly_std = df_mean.std(axis=0, ddof=0)
 
     # 予測結果プロット
     plt.figure(figsize=(10, 6))

@@ -27,7 +27,7 @@ for _, row in df_kanto.iterrows():
         df = df[df['計測日'].isin(target_date_strs)]
         pivot = df.pivot(index='計測時間', columns='計測日', values='全体')
         hourly_mean = pivot.mean(axis=1)
-        hourly_std = pivot.std(axis=1)
+        hourly_std = pivot.std(axis=1, ddof=0)
 
         x = hourly_mean.index.astype(int).values
         y = hourly_mean.values

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from utils import (
     load_and_clean_csv, is_valid_period, filter_target_dates,
-    make_pivot, extract_consumer_name
+    make_pivot, extract_consumer_name, calc_hourly_stats, plot_hourly_stats
 )
 
 # データリスト読み込み
@@ -38,15 +38,8 @@ for _, row in df_list.iterrows():
         continue
 
     pivot = make_pivot(df)
-    hourly_mean = pivot.mean(axis=1)
-    hourly_std = pivot.std(axis=1)
-
-    x = hourly_mean.index.astype(int).values
-    y = hourly_mean.values
-    yerr = hourly_std.values
-
-    plt.plot(x, y, label=consumer_name)
-    plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
+    x, y, yerr = calc_hourly_stats(pivot)
+    plot_hourly_stats(x, y, yerr, label=consumer_name)
 
     for h, m, s in zip(x, y, yerr):
         output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
@@ -59,10 +52,11 @@ for f in excluded_files:
 
 # グラフ保存
 plt.xlabel('Time')
+plt.xlim(1,24)
 plt.ylabel('Predicted Negawatt [kWh]')
-plt.title('Predicted Negawatt on June 1')
+plt.ylim(-1,800)
 plt.grid(True)
-plt.savefig("output/predicted_june1_2023.png")
+plt.savefig("output/predicted_negawatt_hourly_stats_2023.png")
 plt.show()
 plt.close()
 

@@ -58,7 +58,7 @@ mean_per_hour = df_sum.mean(axis=0)  # axis=0 → 行方向に平均
 #print(mean_per_hour)
 
 # 各時間帯（列）ごとに、61日分（行）の分散を計算
-std_per_hour = df_sum.std(axis=0)  # axis=0 → 行方向に分散（不偏分散）
+std_per_hour = df_sum.std(axis=0, ddof=0)  # axis=0 → 行方向に分散（不偏分散）
 #print(std_per_hour)
 
 # ユーザー指定：対象時間帯と削減割合
