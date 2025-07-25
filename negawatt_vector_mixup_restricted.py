@@ -3,7 +3,10 @@ import matplotlib.pyplot as plt
 import os
 import random
 import numpy as np
-import utils
+from utils import (
+    load_and_clean_csv, extract_consumer_name,
+    is_complete_year_data, calc_hourly_stats, plot_hourly_stats
+)
 
 # データリスト読み込み
 df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
@@ -32,59 +35,39 @@ for _, row in df_list.iterrows():
     contract_type = row['契約電力']
     path = os.path.join(data_dir, file_name)
 
-    if not os.path.isfile(path):
+    df_raw = load_and_clean_csv(path)
+    if df_raw is None:
         continue
 
-    try:
-        df_raw = pd.read_csv(
-            path,
-            encoding='utf-8-sig',
-            usecols=[0, 1, 2],
-            header=0,
-            names=["計測日", "計測時間", "全体"]
-        )
+    df_raw["計測日"] = pd.to_datetime(df_raw["計測日"], errors='coerce', format='%Y/%m/%d')
+    df_raw = df_raw.dropna(subset=["計測日"])
+    df_raw["年"] = df_raw["計測日"].dt.year
+    df_raw["月日"] = df_raw["計測日"].dt.strftime('%m-%d')
+    unique_years = df_raw["年"].unique()
+    file_valid = False
 
-        df_raw["計測日"] = pd.to_datetime(df_raw["計測日"], errors='coerce', format='%Y/%m/%d')
-        df_raw = df_raw.dropna(subset=["計測日"])
-        df_raw["年"] = df_raw["計測日"].dt.year
-        df_raw["月日"] = df_raw["計測日"].dt.strftime('%m-%d')
-        unique_years = df_raw["年"].unique()
-        file_valid = False
+    for year in sorted(unique_years):
+        target_start = pd.to_datetime(f"{year}-{target_start_md}")
+        target_end = pd.to_datetime(f"{year}-{target_end_md}")
+        target_dates = pd.date_range(start=target_start, end=target_end)
 
-        for year in sorted(unique_years):
-            target_start = pd.to_datetime(f"{year}-{target_start_md}")
-            target_end = pd.to_datetime(f"{year}-{target_end_md}")
-            target_dates = pd.date_range(start=target_start, end=target_end)
+        df_period = df_raw[df_raw["計測日"].isin(target_dates)]
 
-            df_period = df_raw[df_raw["計測日"].isin(target_dates)]
+        if len(df_period) != expected_rows:
+            continue
 
-            if len(df_period) != expected_rows:
-                continue
+        pivot = df_period.pivot(index='計測時間', columns='計測日', values='全体')
+        x, y, yerr = calc_hourly_stats(pivot)
+        plot_hourly_stats(x, y, yerr, label=f"{consumer_name} ({year})")
 
-            pivot = df_period.pivot(index='計測時間', columns='計測日', values='全体')
-            hourly_mean = pivot.mean(axis=1)
-            hourly_std = pivot.std(axis=1, ddof=0)
+        for h, m, s in zip(x, y, yerr):
+            output_rows.append({'Consumer': consumer_name, 'Year': year, 'Hour': int(h), 'Mean': m, 'Std': s})
 
-            x = hourly_mean.index.astype(int).values
-            y = hourly_mean.values
-            yerr = hourly_std.values
+        consumer_profiles_by_contract[contract_type].append((x, y, yerr))
+        file_valid = True
 
-            label = f"{consumer_name} ({year})"
-            plt.plot(x, y, label=label)
-            plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
-
-            for h, m, s in zip(x, y, yerr):
-                output_rows.append({'Consumer': consumer_name, 'Year': year, 'Hour': int(h), 'Mean': m, 'Std': s})
-
-            consumer_profiles_by_contract[contract_type].append((x, y, yerr))
-            file_valid = True
-
-        if not file_valid:
-            excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
-
-    except Exception as e:
-        print(f"Error reading {file_name}: {e}")
-        continue
+    if not file_valid:
+        excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
 
 # Mixupによる合成（契約電力区分ごとに）
 mixup_index = 1
@@ -113,9 +96,6 @@ valid_file_count = len(set([row['Consumer'] + str(row['Year']) for row in output
 synthetic_count = len(set([row['Consumer'] for row in output_rows if row['Year'] == 'Synthetic']))
 print('有効ファイル数（年ごとの組み合わせ）:', valid_file_count)
 print('合成された需要家数:', synthetic_count)
-print('\n除外されたファイル（期間不一致やデータ不足）:')
-for f in excluded_files:
-    print(f)
 print(f'\n除外されたファイルの数:', len(excluded_files))
 
 # グラフ保存
