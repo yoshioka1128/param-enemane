@@ -1,9 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
-
-np.random.seed(1)
 
 plt.rcParams['xtick.direction'] = 'in'
 plt.rcParams['ytick.direction'] = 'in'
