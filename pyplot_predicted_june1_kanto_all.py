@@ -14,7 +14,7 @@ target_date_strs = target_dates.strftime('%Y/%m/%d')
 plt.figure()
 output_rows = []
 
-for idx, row in df_kanto.iterrows():
+for _, row in df_kanto.iterrows():
     file_name = row['ファイル名']
     consumer_name = file_name.replace('.csv', '')
 

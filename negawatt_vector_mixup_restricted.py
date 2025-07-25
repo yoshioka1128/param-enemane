@@ -26,7 +26,7 @@ expected_rows = target_days * hours_per_day
 # 契約電力区分ごとのプロファイル格納用辞書
 consumer_profiles_by_contract = {'低圧': [], '高圧': [], '高圧小口': []}
 
-for idx, row in df_list.iterrows():
+for _, row in df_list.iterrows():
     file_name = row['ファイル名']
     consumer_name = file_name.replace('.csv', '')
     contract_type = row['契約電力']
