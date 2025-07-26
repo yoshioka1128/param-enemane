@@ -70,11 +70,15 @@ for _, row in df_list.iterrows():
             continue  # データ不足
 
         # xは時間だが1行のみになるので不要、yが平均値の配列（axis=1方向）、yerrが標準偏差
-        x, y, yerr = calc_hourly_stats(pivot)
-        if y is not None and len(y) > 0:
-            consumer_profiles_by_contract[contract_type].append((x, y, yerr, consumer_name, year))
+#        x, y, yerr = calc_hourly_stats(pivot)
+#        if y is not None and len(y) > 0:
+#            consumer_profiles_by_contract[contract_type].append((x, y, yerr, consumer_name, year))
+#            file_valid = True
+        if target_hour in pivot.index and pivot.shape[1] == target_days:
+            y = pivot.loc[target_hour].values  # ← ここが変更の主眼、shape=(61,)
+            consumer_profiles_by_contract[contract_type].append((None, y, None, consumer_name, year))
             file_valid = True
-
+    
     if not file_valid:
         excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
 
