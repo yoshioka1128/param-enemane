@@ -62,11 +62,11 @@ for _, row in df_list.iterrows():
 
         # 時間表記を2桁に揃える（例：'1' → '01'）
         pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
-        if target_hour not in pivot.index or pivot.shape[1] != 61:
+        if target_hour not in pivot.index or pivot.shape[1] != target_days:
             continue  # データ不足
 
         data_matrix.append(pivot.loc[target_hour].values)
-        consumer_names.append(f"{consumer_name} ({year})")
+        consumer_names.append(f"{consumer_name}_{year}")
         file_has_valid_data = True
 
     if not file_has_valid_data:

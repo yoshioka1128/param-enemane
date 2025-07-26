@@ -50,10 +50,9 @@ for _, row in df_list.iterrows():
     df_raw["月日"] = df_raw["計測日"].dt.strftime('%m-%d')
     df_raw["計測時間"] = df_raw["計測時間"].astype(str).str.zfill(2)
 
-    unique_years = df_raw["年"].unique()
     file_valid = False
 
-    for year in sorted(unique_years):
+    for year in sorted(df_raw["年"].unique()):
         target_start = pd.to_datetime(f"{year}-{target_start_md}")
         target_end = pd.to_datetime(f"{year}-{target_end_md}")
         target_dates = pd.date_range(start=target_start, end=target_end)
@@ -69,11 +68,6 @@ for _, row in df_list.iterrows():
         if target_hour not in pivot.index or pivot.shape[1] != target_days:
             continue  # データ不足
 
-        # xは時間だが1行のみになるので不要、yが平均値の配列（axis=1方向）、yerrが標準偏差
-#        x, y, yerr = calc_hourly_stats(pivot)
-#        if y is not None and len(y) > 0:
-#            consumer_profiles_by_contract[contract_type].append((x, y, yerr, consumer_name, year))
-#            file_valid = True
         if target_hour in pivot.index and pivot.shape[1] == target_days:
             y = pivot.loc[target_hour].values  # ← ここが変更の主眼、shape=(61,)
             consumer_profiles_by_contract[contract_type].append((None, y, None, consumer_name, year))
@@ -84,7 +78,7 @@ for _, row in df_list.iterrows():
 
 # --- Mixup 拡張 + 共分散計算 --------------------------------------------------
 mixup_index = 1
-all_profiles = []  # 全需要家（元＋合成）データ格納
+data_matrix = [] # 全需要家（元＋合成）データ格納
 all_names = []
 
 random.seed(42)  # 再現性のため固定
@@ -96,7 +90,7 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
 
     # 元データをまず追加
     for p in profiles:
-        all_profiles.append(p[1])  # y値（平均） ※今回は1時間帯のため1値のみ
+        data_matrix.append(p[1])
         all_names.append(f"{p[3]}_{p[4]}")  # 例: ConsumerA_2022
 
     # Mixup 合成
@@ -106,17 +100,22 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         a, b = random.sample(profiles, 2)
         lam = random.uniform(0.3, 0.7)
         y_mix = lam * a[1] + (1 - lam) * b[1]
+#        print(y_mix)
+#        exit()
 
         a_name = f"{a[3]}_{a[4]}"
         b_name = f"{b[3]}_{b[4]}"
         label = f"Mixup_{mixup_index} ({contract_type}): {a_name} + {b_name}"
-        all_profiles.append(y_mix)
-        all_names.append(label)
+#        data_matrix.append(y_mix)
+#        all_names.append(label)
         mixup_index += 1
 
 # --- 共分散行列計算 ---
-profile_array = np.array(all_profiles)  # shape: (num_profiles, 1)
-cov_matrix = np.cov(profile_array, bias=True)
+#profile_array =[]
+#profile_array.append(all_profiles)  # shape: (num_profiles, 1)
+cov_matrix = np.cov(np.array(data_matrix), ddof=0)
+print("data_matrix.shape =", np.array(data_matrix).shape)
+#print("example profile shape:", np.array(all_profiles[0]).shape)
 
 # --- 保存と可視化 ---
 os.makedirs("output", exist_ok=True)
