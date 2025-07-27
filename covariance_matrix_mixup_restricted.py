@@ -68,7 +68,7 @@ for _, row in df_list.iterrows():
             continue  # データ不足
 
         if target_hour in pivot.index and pivot.shape[1] == target_days:
-            y = pivot.loc[target_hour].values  # ← ここが変更の主眼、shape=(61,)
+            y = pivot.loc[target_hour].values
             consumer_profiles_by_contract[contract_type].append((None, y, None, consumer_name, year))
             file_valid = True
     
@@ -89,8 +89,10 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
 
     # 元データをまず追加
     for p in profiles:
+        consumer_name = f"{p[3]}_{p[4]}"
         data_matrix.append(p[1])
-        all_names.append(f"{p[3]}_{p[4]}")  # 例: ConsumerA_2022
+        all_names.append(consumer_name)  # 例: ConsumerA_2022
+        print(consumer_name, np.std(np.array(p[1]), ddof=0))
 
     # Mixup 合成
     for i in range(num_synthetic):
@@ -103,6 +105,7 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         a_name = f"{a[3]}_{a[4]}"
         b_name = f"{b[3]}_{b[4]}"
         label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {a_name} + {b_name}"
+        print(label, np.std(np.array(y_mix), ddof=0))
         data_matrix.append(y_mix)
         all_names.append(label)
         mixup_index += 1

@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
+import numpy as np
 
 plt.rcParams['xtick.direction'] = 'in'
 plt.rcParams['ytick.direction'] = 'in'
@@ -74,4 +75,4 @@ def calc_hourly_stats(pivot):
 def plot_hourly_stats(x, y, yerr, label):
     """エラーバーつきの折れ線グラフを描画"""
     plt.plot(x, y, label=label)
-    plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
+    plt.fill_between(x, np.array(y) - np.array(yerr), np.array(y) + np.array(yerr), alpha=0.1)

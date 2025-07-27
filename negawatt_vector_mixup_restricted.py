@@ -61,22 +61,22 @@ for _, row in df_list.iterrows():
 
         pivot = make_pivot(df_period)
 
-        x, y, yerr = calc_hourly_stats(pivot)
+        # 時間表記を2桁に揃える（例：'1' → '01'）
+        pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
+        if pivot.shape[1] != target_days:
+            continue  # データ不足
 
-#        for h, m, s in zip(x, y, yerr):
-#            output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
-
-        consumer_profiles_by_contract[contract_type].append((x, y, yerr, consumer_name, year))
-        file_valid = True
+        if pivot.shape[1] == target_days:
+            consumer_profiles_by_contract[contract_type].append((pivot, consumer_name, year))
+            file_valid = True
 
     if not file_valid:
         excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
 
 # Mixupによる合成（契約電力区分ごとに）
-data_vector = []
-all_names = []
 random.seed(42)
 mixup_index = 1
+
 for contract_type, profiles in consumer_profiles_by_contract.items():
     num_original = len(profiles)
     num_synthetic = int(num_original * 2.4)
@@ -84,11 +84,9 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
 
     # 元データをまず追加
     for p in profiles:
-        data_vector.append(p[1])
-        consumer_name = f"{p[3]}_{p[4]}"
-        all_names.append(consumer_name)  # 例: ConsumerA_2022
-        plot_hourly_stats(p[0], p[1], p[2], label=consumer_name)
-        for h, m, s in zip(p[0], p[1], p[2]):
+        x, y, yerr = calc_hourly_stats(p[0])
+        plot_hourly_stats(x, y, yerr, label=consumer_name)
+        for h, m, s in zip(x, y, yerr):
             output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
 
     for i in range(num_synthetic):
@@ -96,22 +94,23 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
             continue
         a, b = random.sample(profiles, 2)
         lam = random.uniform(0.3, 0.7)
-        x = a[0]
-        y_mix = lam * a[1] + (1 - lam) * b[1]
-        yerr_mix = np.sqrt(lam * a[2]**2 + (1 - lam) * b[2]**2)
+        x = a[0].index
+        y_mix = lam * a[0] + (1 - lam) * b[0]
+#        yerr_mix = np.sqrt((lam * a[2])**2 + ((1 - lam) * b[2])**2)
 
-        a_name = f"{a[3]}_{a[4]}"  # 例: "Consumer_A_2022"
-        b_name = f"{b[3]}_{b[4]}"
+        a_name = f"{a[1]}_{a[2]}"  # 例: "Consumer_A_2022"
+        b_name = f"{b[1]}_{b[2]}"
         year_info = f"{a_name} + {b_name}"
-        label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {a_name} + {b_name}"
-        data_vector.append(p[1])
-        all_names.append(label)
+        label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {year_info}"
         mixup_index += 1
 
-        plt.plot(x, y_mix, label=label, linestyle='--')
-        plt.fill_between(x, y_mix - yerr_mix, y_mix + yerr_mix, alpha=0.1)
+        y = y_mix.mean(axis=1)
+        yerr = y_mix.std(axis=1, ddof=0)
 
-        for h, m, s in zip(x, y_mix, yerr_mix):
+        plt.plot(x, y, label=label, linestyle='--')
+        plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
+
+        for h, m, s in zip(x, y, yerr):
             output_rows.append({'Consumer': label, 'Hour': int(h), 'Mean': m, 'Std': s})
 
 # 結果出力
