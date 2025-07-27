@@ -85,7 +85,8 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
     # 元データをまず追加
     for p in profiles:
         x, y, yerr = calc_hourly_stats(p[0])
-        plot_hourly_stats(x, y, yerr, label=consumer_name)
+        consumer_name = f"{p[1]}_{p[2]}"
+        plot_hourly_stats(x, y, yerr, label=consumer_name, linestyle='-')
         for h, m, s in zip(x, y, yerr):
             output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
 
@@ -93,22 +94,16 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         if len(profiles) < 2:
             continue
         a, b = random.sample(profiles, 2)
+        pivot_a = a[0].copy()
+        pivot_b = b[0].copy()
         lam = random.uniform(0.3, 0.7)
-        x = a[0].index
-        y_mix = lam * a[0] + (1 - lam) * b[0]
-#        yerr_mix = np.sqrt((lam * a[2])**2 + ((1 - lam) * b[2])**2)
-
-        a_name = f"{a[1]}_{a[2]}"  # 例: "Consumer_A_2022"
-        b_name = f"{b[1]}_{b[2]}"
-        year_info = f"{a_name} + {b_name}"
-        label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {year_info}"
+        pivot_mix = lam * pivot_a + (1 - lam) * pivot_b
+        x, y, yerr = calc_hourly_stats(pivot_mix)
+        
+        consumer_name = f"{a[1]}_{a[2]} + {b[1]}_{b[2]}"
+        label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {consumer_name}"
         mixup_index += 1
-
-        y = y_mix.mean(axis=1)
-        yerr = y_mix.std(axis=1, ddof=0)
-
-        plt.plot(x, y, label=label, linestyle='--')
-        plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
+        plot_hourly_stats(x, y, yerr, label=consumer_name, linestyle='--')
 
         for h, m, s in zip(x, y, yerr):
             output_rows.append({'Consumer': label, 'Hour': int(h), 'Mean': m, 'Std': s})
@@ -149,8 +144,9 @@ for consumer, group in df_mixup.groupby(['Consumer']):
     x = group['Hour'].values
     y = group['Mean'].values
     yerr = group['Std'].values
-    plt.plot(x, y, linestyle='--', label=consumer)
-    plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
+    plot_hourly_stats(x, y, yerr, label=consumer, linestyle='--')
+#    plt.plot(x, y, linestyle='--', label=consumer)
+#    plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
 
 plt.xlabel('Time')
 plt.xlim(1, 24)
