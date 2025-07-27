@@ -62,10 +62,9 @@ for _, row in df_list.iterrows():
         pivot = make_pivot(df_period)
 
         x, y, yerr = calc_hourly_stats(pivot)
-#        plot_hourly_stats(x, y, yerr, label=f"{consumer_name} ({year})")
 
-        for h, m, s in zip(x, y, yerr):
-            output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
+#        for h, m, s in zip(x, y, yerr):
+#            output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
 
         consumer_profiles_by_contract[contract_type].append((x, y, yerr, consumer_name, year))
         file_valid = True
@@ -86,8 +85,11 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
     # 元データをまず追加
     for p in profiles:
         data_vector.append(p[1])
-        all_names.append(f"{p[3]}_{p[4]}")  # 例: ConsumerA_2022
-        plot_hourly_stats(p[0], p[1], p[2], label=f"{p[3]}_{p[4]}")
+        consumer_name = f"{p[3]}_{p[4]}"
+        all_names.append(consumer_name)  # 例: ConsumerA_2022
+        plot_hourly_stats(p[0], p[1], p[2], label=consumer_name)
+        for h, m, s in zip(p[0], p[1], p[2]):
+            output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
 
     for i in range(num_synthetic):
         if len(profiles) < 2:
