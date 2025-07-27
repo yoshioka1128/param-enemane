@@ -4,8 +4,13 @@ import os
 import random
 import numpy as np
 from utils import (
-    load_and_clean_csv, extract_consumer_name,
-    is_complete_year_data, calc_hourly_stats, plot_hourly_stats
+    extract_consumer_name,
+    load_and_clean_csv,
+    filter_target_dates,
+    make_pivot,
+    is_complete_year_data,
+    calc_hourly_stats,
+    plot_hourly_stats,
 )
 
 # データリスト読み込み
@@ -27,7 +32,7 @@ hours_per_day = 24
 expected_rows = target_days * hours_per_day
 
 # 契約電力区分ごとのプロファイル格納用辞書
-consumer_profiles_by_contract = {'低圧': [], '高圧': [], '高圧小口': []}
+consumer_profiles_by_contract = {'低圧': [], '高圧小口': [], '高圧': []}
 
 for _, row in df_list.iterrows():
     file_name = row['ファイル名']
@@ -43,22 +48,24 @@ for _, row in df_list.iterrows():
     df_raw = df_raw.dropna(subset=["計測日"])
     df_raw["年"] = df_raw["計測日"].dt.year
     df_raw["月日"] = df_raw["計測日"].dt.strftime('%m-%d')
-    unique_years = df_raw["年"].unique()
     file_valid = False
 
-    for year in sorted(unique_years):
+    for year in sorted(df_raw["年"].unique()):
         target_start = pd.to_datetime(f"{year}-{target_start_md}")
         target_end = pd.to_datetime(f"{year}-{target_end_md}")
         target_dates = pd.date_range(start=target_start, end=target_end)
 
         df_period = is_complete_year_data(df_raw, target_dates, expected_rows)
+        if df_period is None:
+            continue  # データ不完全な年はスキップ
 
         pivot = make_pivot(df_period)
+
         x, y, yerr = calc_hourly_stats(pivot)
-        plot_hourly_stats(x, y, yerr, label=f"{consumer_name} ({year})")
+#        plot_hourly_stats(x, y, yerr, label=f"{consumer_name} ({year})")
 
         for h, m, s in zip(x, y, yerr):
-            output_rows.append({'Consumer': consumer_name, 'Year': year, 'Hour': int(h), 'Mean': m, 'Std': s})
+            output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
 
         consumer_profiles_by_contract[contract_type].append((x, y, yerr, consumer_name, year))
         file_valid = True
@@ -67,12 +74,20 @@ for _, row in df_list.iterrows():
         excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
 
 # Mixupによる合成（契約電力区分ごとに）
+data_vector = []
+all_names = []
 random.seed(42)
 mixup_index = 1
 for contract_type, profiles in consumer_profiles_by_contract.items():
     num_original = len(profiles)
     num_synthetic = int(num_original * 2.4)
     print(f"[{contract_type}] original: {num_original}, mixup: {num_synthetic}")
+
+    # 元データをまず追加
+    for p in profiles:
+        data_vector.append(p[1])
+        all_names.append(f"{p[3]}_{p[4]}")  # 例: ConsumerA_2022
+        plot_hourly_stats(p[0], p[1], p[2], label=f"{p[3]}_{p[4]}")
 
     for i in range(num_synthetic):
         if len(profiles) < 2:
@@ -85,20 +100,21 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
 
         a_name = f"{a[3]}_{a[4]}"  # 例: "Consumer_A_2022"
         b_name = f"{b[3]}_{b[4]}"
-        year_info = f"Synthetic ({a_name} + {b_name})"
-
-        label = f"Mixup_{mixup_index} ({contract_type})"
-        year_info = f"Synthetic ({a_name} + {b_name})"
+        year_info = f"{a_name} + {b_name}"
+        label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {a_name} + {b_name}"
+        data_vector.append(p[1])
+        all_names.append(label)
         mixup_index += 1
+
         plt.plot(x, y_mix, label=label, linestyle='--')
         plt.fill_between(x, y_mix - yerr_mix, y_mix + yerr_mix, alpha=0.1)
 
         for h, m, s in zip(x, y_mix, yerr_mix):
-            output_rows.append({'Consumer': label, 'Year': year_info, 'Hour': int(h), 'Mean': m, 'Std': s})
+            output_rows.append({'Consumer': label, 'Hour': int(h), 'Mean': m, 'Std': s})
 
 # 結果出力
-valid_file_count = len(set(row['Consumer'] + str(row['Year']) for row in output_rows if not str(row['Year']).startswith('Synthetic')))
-synthetic_count = len(set(row['Consumer'] for row in output_rows if str(row['Year']).startswith('Synthetic')))
+valid_file_count = len(set(row['Consumer'] for row in output_rows if not str(row['Consumer']).startswith('Mixup')))
+synthetic_count = len(set(row['Consumer'] for row in output_rows if str(row['Consumer']).startswith('Mixup')))
 print('有効ファイル数（年ごとの組み合わせ）:', valid_file_count)
 print('合成された需要家数:', synthetic_count)
 print('合計需要家数:', valid_file_count + synthetic_count)
@@ -128,7 +144,7 @@ df_mixup = output_df[output_df['Consumer'].str.startswith('Mixup_')]
 
 plt.figure()
 plt.subplots_adjust(left=0.1, right=0.97)
-for (consumer, year), group in df_mixup.groupby(['Consumer', 'Year']):
+for consumer, group in df_mixup.groupby(['Consumer']):
     x = group['Hour'].values
     y = group['Mean'].values
     yerr = group['Std'].values

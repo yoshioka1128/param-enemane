@@ -30,7 +30,7 @@ hours_per_day = 24
 expected_rows = target_days * hours_per_day
 
 # 契約電力区分ごとのプロファイル格納用辞書
-consumer_profiles_by_contract = {'低圧': [], '高圧': [], '高圧小口': []}
+consumer_profiles_by_contract = {'低圧': [], '高圧小口': [], '高圧': []}
 excluded_files = []
 
 # --- データ読み込み ---
@@ -49,7 +49,6 @@ for _, row in df_list.iterrows():
     df_raw["年"] = df_raw["計測日"].dt.year
     df_raw["月日"] = df_raw["計測日"].dt.strftime('%m-%d')
     df_raw["計測時間"] = df_raw["計測時間"].astype(str).str.zfill(2)
-
     file_valid = False
 
     for year in sorted(df_raw["年"].unique()):
@@ -100,22 +99,17 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         a, b = random.sample(profiles, 2)
         lam = random.uniform(0.3, 0.7)
         y_mix = lam * a[1] + (1 - lam) * b[1]
-#        print(y_mix)
-#        exit()
 
         a_name = f"{a[3]}_{a[4]}"
         b_name = f"{b[3]}_{b[4]}"
-        label = f"Mixup_{mixup_index} ({contract_type}): {a_name} + {b_name}"
-#        data_matrix.append(y_mix)
-#        all_names.append(label)
+        label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {a_name} + {b_name}"
+        data_matrix.append(y_mix)
+        all_names.append(label)
         mixup_index += 1
 
 # --- 共分散行列計算 ---
-#profile_array =[]
-#profile_array.append(all_profiles)  # shape: (num_profiles, 1)
 cov_matrix = np.cov(np.array(data_matrix), ddof=0)
 print("data_matrix.shape =", np.array(data_matrix).shape)
-#print("example profile shape:", np.array(all_profiles[0]).shape)
 
 # --- 保存と可視化 ---
 os.makedirs("output", exist_ok=True)
