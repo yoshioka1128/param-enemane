@@ -69,7 +69,7 @@ for i, (name, cov, var) in enumerate(zip(consumer_list, cov_values, stats_values
 print('cov_values')
 print(np.array(cov_values))
 print(np.isnan(np.array(cov_values)).sum())
-print('stats_vaues')
+print('stats_values')
 print(np.array(stats_values))
 print(np.isnan(np.array(stats_values)).sum())
 

@@ -63,12 +63,11 @@ for _, row in df_list.iterrows():
 
         # 時間表記を2桁に揃える（例：'1' → '01'）
         pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
-        if pivot.shape[1] != target_days:
+        if pivot.shape[1] != target_days or pivot.isnull().values.any():
             continue  # データ不足
 
-        if pivot.shape[1] == target_days:
-            consumer_profiles_by_contract[contract_type].append((pivot, consumer_name, year))
-            file_valid = True
+        consumer_profiles_by_contract[contract_type].append((pivot, consumer_name, year))
+        file_valid = True
 
     if not file_valid:
         excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
@@ -80,7 +79,7 @@ mixup_index = 1
 for contract_type, profiles in consumer_profiles_by_contract.items():
     num_original = len(profiles)
     num_synthetic = int(num_original * 2.4)
-    print(f"[{contract_type}] original: {num_original}, mixup: {num_synthetic}")
+#    print(f"[{contract_type}] original: {num_original}, mixup: {num_synthetic}")
 
     # 元データをまず追加
     for p in profiles:
@@ -97,11 +96,22 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         pivot_a = a[0].copy()
         pivot_b = b[0].copy()
         lam = random.uniform(0.3, 0.7)
-        pivot_mix = lam * pivot_a + (1 - lam) * pivot_b
+#        pivot_mix = lam * pivot_a + (1 - lam) * pivot_b
+        pivot_mix_values = lam * pivot_a.values + (1 - lam) * pivot_b.values
+        pivot_mix = pd.DataFrame(pivot_mix_values, index=pivot_a.index)
+
         x, y, yerr = calc_hourly_stats(pivot_mix)
         
         consumer_name = f"{a[1]}_{a[2]} + {b[1]}_{b[2]}"
         label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {consumer_name}"
+#        print(label)
+#        print('pivot_a')
+#        print(pivot_a)
+#        print('pivot_b')
+#        print(pivot_b)
+#        print('pivot_mix')
+#        print(pivot_mix)
+#        exit()
         mixup_index += 1
         plot_hourly_stats(x, y, yerr, label=consumer_name, linestyle='--')
 

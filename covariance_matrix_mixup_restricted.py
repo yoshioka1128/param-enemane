@@ -64,13 +64,15 @@ for _, row in df_list.iterrows():
         
         # 時間表記を2桁に揃える（例：'1' → '01'）
         pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
+        if pivot.shape[1] != target_days or pivot.isnull().values.any():
+            continue  # データ不足
+
         if target_hour not in pivot.index or pivot.shape[1] != target_days:
             continue  # データ不足
 
-        if target_hour in pivot.index and pivot.shape[1] == target_days:
-            y = pivot.loc[target_hour].values
-            consumer_profiles_by_contract[contract_type].append((None, y, None, consumer_name, year))
-            file_valid = True
+        y = pivot.loc[target_hour].values
+        consumer_profiles_by_contract[contract_type].append((None, y, None, consumer_name, year))
+        file_valid = True
     
     if not file_valid:
         excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
@@ -121,7 +123,7 @@ cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_mixup_restricted.csv"
 print(f"共分散行列を 'output/covariance_matrix_time{target_hour}_mixup_restricted.csv' に保存しました。")
 
 plt.figure(figsize=(12, 10))
-sns.heatmap(cov_df, cmap="coolwarm", xticklabels=False, yticklabels=False, vmin=-25, vmax=25, cbar_kws={"label": "Covariance"})
+sns.heatmap(cov_df, cmap="coolwarm", xticklabels=False, yticklabels=False, vmin=-10, vmax=10, cbar_kws={"label": "Covariance"})
 plt.title(f"Covariance Matrix with Mixup - Time {target_hour}")
 plt.tight_layout()
 plt.savefig(f"output/covariance_heatmap_time{target_hour}_mixup_restricted.png")
