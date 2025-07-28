@@ -87,7 +87,7 @@ if len(data_matrix) > 1:
 
     # ヒートマップとして保存
     plt.figure()
-    sns.heatmap(cov_df, annot=False, cmap='coolwarm', xticklabels=False, yticklabels=False, vmin=-25, vmax=25,
+    sns.heatmap(cov_df, annot=False, cmap='coolwarm', xticklabels=False, yticklabels=False, vmin=-10, vmax=10,
                 cbar_kws={'label': 'Covariance'})
     plt.xlabel("Consumer")
     plt.ylabel("Consumer")
