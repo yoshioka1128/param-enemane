@@ -94,7 +94,6 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         consumer_name = f"{p[3]}_{p[4]}"
         data_matrix.append(p[1])
         all_names.append(consumer_name)  # 例: ConsumerA_2022
-        print(consumer_name, np.std(np.array(p[1]), ddof=0))
 
     # Mixup 合成
     for i in range(num_synthetic):
@@ -107,7 +106,6 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         a_name = f"{a[3]}_{a[4]}"
         b_name = f"{b[3]}_{b[4]}"
         label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {a_name} + {b_name}"
-        print(label, np.std(np.array(y_mix), ddof=0))
         data_matrix.append(y_mix)
         all_names.append(label)
         mixup_index += 1
@@ -122,9 +120,14 @@ cov_df = pd.DataFrame(cov_matrix, index=all_names, columns=all_names)
 cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_mixup_restricted.csv", encoding='utf-8-sig')
 print(f"共分散行列を 'output/covariance_matrix_time{target_hour}_mixup_restricted.csv' に保存しました。")
 
-plt.figure(figsize=(12, 10))
-sns.heatmap(cov_df, cmap="coolwarm", xticklabels=False, yticklabels=False, vmin=-10, vmax=10, cbar_kws={"label": "Covariance"})
+plt.figure()
+sns.heatmap(cov_df, annot=False, cmap='coolwarm', xticklabels=False, yticklabels=False, vmin=-10, vmax=10,
+            cbar_kws={'label': 'Covariance'})
+
 plt.title(f"Covariance Matrix with Mixup - Time {target_hour}")
+plt.xlabel("Consumer")
+plt.ylabel("Consumer")
+plt.title(f"Covariance Matrix - Time {target_hour}")
 plt.tight_layout()
 plt.savefig(f"output/covariance_heatmap_time{target_hour}_mixup_restricted.png")
 print(f"ヒートマップを 'output/covariance_heatmap_time{target_hour}_mixup_restricted.png' に保存しました。")
