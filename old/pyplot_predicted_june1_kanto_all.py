@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import os
 
 # データリスト読み込み
-df_list = pd.read_csv('OPEN_DATA/list_60.csv', encoding='cp932')
+df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
 df_list.columns = df_list.columns.str.strip()
 df_kanto = df_list[df_list['所在地'] == '関東']
 
-data_dir = 'OPEN_DATA/raw'
+data_dir = 'OPEN_DATA_60/raw'
 target_dates = pd.date_range(start='2013-04-01', end='2013-05-31')
 target_date_strs = target_dates.strftime('%Y/%m/%d')
 

@@ -6,11 +6,11 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-df_list = pd.read_csv('OPEN_DATA/list_60.csv', encoding='cp932')
+df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
 df_list.columns = df_list.columns.str.strip()
 df_kanto = df_list[df_list['所在地'] == '関東']
 
-data_dir = 'OPEN_DATA/raw'
+data_dir = 'OPEN_DATA_60/raw'
 all_data = []
 target_dates = pd.date_range('2013-04-01', '2013-05-31').strftime('%Y/%m/%d')
 predict_date = '2013/06/01'
@@ -133,7 +133,7 @@ if len(target_hours) > 1 and all(np.diff(target_hours) == 1):
 else:
     hour_label = "hour" + "_".join(str(h) for h in target_hours)
 ratio_str = f"{ratio:.2f}".replace('.', '_')
-filename = f"output/total_and_reduced_{hour_label}_ratio{ratio_str}.png"
+filename = f"output/total_and_reduced_power_consumption_{hour_label}_ratio{ratio_str}.png"
 plt.savefig(filename, dpi=300)
 print(f"{filename} に保存しました。")
 

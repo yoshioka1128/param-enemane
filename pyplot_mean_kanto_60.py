@@ -57,7 +57,7 @@ else:
     hourly_std = df_mean.std(axis=0, ddof=0)
 
     # 予測結果プロット
-    plt.figure(figsize=(10, 6))
+    plt.figure()
     x = hourly_mean.index.astype(int).values  # 1〜24
 
     plt.plot(x, hourly_mean.values, label='Predicted Average (4/1-5/31)', marker='o')

@@ -95,21 +95,6 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         data_matrix.append(p[1])
         all_names.append(consumer_name)  # 例: ConsumerA_2022
 
-    # Mixup 合成
-    for i in range(num_synthetic):
-        if len(profiles) < 2:
-            continue
-        a, b = random.sample(profiles, 2)
-        lam = random.uniform(0.3, 0.7)
-        y_mix = lam * a[1] + (1 - lam) * b[1]
-
-        a_name = f"{a[3]}_{a[4]}"
-        b_name = f"{b[3]}_{b[4]}"
-        label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {a_name} + {b_name}"
-        data_matrix.append(y_mix)
-        all_names.append(label)
-        mixup_index += 1
-
 # --- 共分散行列計算 ---
 cov_matrix = np.cov(np.array(data_matrix), ddof=0)
 print("data_matrix.shape =", np.array(data_matrix).shape)
@@ -117,17 +102,17 @@ print("data_matrix.shape =", np.array(data_matrix).shape)
 # --- 保存と可視化 ---
 os.makedirs("output", exist_ok=True)
 cov_df = pd.DataFrame(cov_matrix, index=all_names, columns=all_names)
-cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_mixup_restricted.csv", encoding='utf-8-sig')
-print(f"共分散行列を 'output/covariance_matrix_time{target_hour}_mixup_restricted.csv' に保存しました。")
+cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_original.csv", encoding='utf-8-sig')
+print(f"共分散行列を 'output/covariance_matrix_time{target_hour}_original.csv' に保存しました。")
 
 plt.figure()
 sns.heatmap(cov_df, annot=False, cmap='coolwarm', xticklabels=False, yticklabels=False, vmin=-5, vmax=5,
             cbar_kws={'label': 'Covariance'})
 
-plt.title(f"Covariance Matrix with Mixup - Time {target_hour}")
+plt.title(f"Covariance Matrix - Time {target_hour}")
 plt.xlabel("Consumer")
 plt.ylabel("Consumer")
 plt.tight_layout()
-plt.savefig(f"output/covariance_heatmap_time{target_hour}_mixup_restricted.png")
-print(f"ヒートマップを 'output/covariance_heatmap_time{target_hour}_mixup_restricted.png' に保存しました。")
+plt.savefig(f"output/covariance_heatmap_time{target_hour}_original.png")
+print(f"ヒートマップを 'output/covariance_heatmap_time{target_hour}_original.png' に保存しました。")
 plt.show()

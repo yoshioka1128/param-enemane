@@ -47,7 +47,7 @@ for _, row in df_target.iterrows():
     total_consumers = len(consumers)
     selected_count = len(selected)
     print(f"Hour {hour}: 選択された需要家数 = {selected_count} / 全需要家数 = {total_consumers}")
-    print(f"total {total}, target{target}, diff{diff}")
+    print(f"total: {total}, target: {target}, diff: {diff}")
 
     result_rows.append({
         'Hour': hour,

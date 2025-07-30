@@ -1,22 +1,18 @@
-#import matplotlib
-#import tkinter
-#matplotlib.use('TkAgg')
 import pandas as pd
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import utils
 
-df_list = pd.read_csv('OPEN_DATA/list_60.csv', encoding='cp932')
+df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
 df_list.columns = df_list.columns.str.strip()
-df_kanto = df_list[df_list['所在地'] == '関東']
 
-data_dir = 'OPEN_DATA/raw'
+data_dir = 'OPEN_DATA_60/raw'
 all_data = []
 target_dates = pd.date_range('2013-04-01', '2013-05-31').strftime('%Y/%m/%d')
-predict_date = '2013/06/01'
 
 valid_file_count = 0
-for _, row in df_kanto.iterrows():
+for _, row in df_list.iterrows():
     file_name = row['ファイル名']
     file_path = os.path.join(data_dir, file_name)
 
@@ -58,7 +54,7 @@ mean_per_hour = df_sum.mean(axis=0)  # axis=0 → 行方向に平均
 #print(mean_per_hour)
 
 # 各時間帯（列）ごとに、61日分（行）の分散を計算
-std_per_hour = df_sum.std(axis=0, ddof=0)  # axis=0 → 行方向に分散（不偏分散）
+std_per_hour = df_sum.std(axis=0, ddof=0) 
 #print(std_per_hour)
 
 # ユーザー指定：対象時間帯と削減割合
@@ -101,28 +97,6 @@ plt.fill_between(x,
 plt.plot(x, reduced_total.values, label=f'Reduced (ratio={ratio})', linestyle='--', marker='s', color='green')
 #plt.plot(x, reduced_diff.values, label='Reduction Amount', linestyle=':', marker='x', color='orange')
 
-# 実測（6月1日）があれば追加プロット
-actual_all = []
-for _, row in df_kanto.iterrows():
-    file_name = row['ファイル名']
-    path = os.path.join(data_dir, file_name)
-    if os.path.isfile(path):
-        try:
-            df = pd.read_csv(path, encoding='utf-8-sig')
-            df_day = df[df['計測日'] == predict_date]
-            if not df_day.empty:
-                df_day = df_day.set_index('計測時間')['全体']
-                actual_all.append(df_day)
-        except:
-            continue
-
-#if actual_all:
-#    actual_df = pd.concat(actual_all, axis=1)
-#    actual_mean = actual_df.mean(axis=1).sort_index()
-#    plt.plot(actual_mean.index.values, actual_mean.values, label='Measured (6/1)',
-#             linestyle='-', marker='D', color='red')
-
-plt.title('Electric Power Consumption Forecast for June 1')
 plt.xlabel('Time')
 plt.ylabel('Electric Power Consumption [kWh]')
 plt.xticks(x)
