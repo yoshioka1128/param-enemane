@@ -79,6 +79,7 @@ for _, row in df_list.iterrows():
 
 # --- Mixup 拡張 + 共分散計算 --------------------------------------------------
 mixup_index = 1
+original_index = 1
 data_matrix = [] # 全需要家（元＋合成）データ格納
 all_names = []
 
@@ -91,7 +92,8 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
 
     # 元データをまず追加
     for p in profiles:
-        consumer_name = f"{p[3]}_{p[4]}"
+        consumer_name = f"Original{original_index}_{p[3]}"
+        original_index += 1
         data_matrix.append(p[1])
         all_names.append(consumer_name)  # 例: ConsumerA_2022
 
@@ -102,10 +104,7 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         a, b = random.sample(profiles, 2)
         lam = random.uniform(0.3, 0.7)
         y_mix = lam * a[1] + (1 - lam) * b[1]
-
-        a_name = f"{a[3]}_{a[4]}"
-        b_name = f"{b[3]}_{b[4]}"
-        label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {a_name} + {b_name}"
+        label = f"Mixup{mixup_index}_{a[3]}_{b[3]}_lam={lam:.2f}"
         data_matrix.append(y_mix)
         all_names.append(label)
         mixup_index += 1

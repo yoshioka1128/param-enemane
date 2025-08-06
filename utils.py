@@ -18,6 +18,29 @@ plt.rcParams.update({
     "axes.titlesize": 18,        # タイトル
 })
 
+import csv
+
+def get_unique_consumers(file_path):
+    """
+    CSVファイルの1列目（Consumer列）から重複を除いた値のリストを返す。
+
+    Parameters:
+        file_path (str): CSVファイルのパス。
+
+    Returns:
+        list: 重複を除いたConsumer名のリスト。
+    """
+    unique_consumers = set()
+
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader)  # ヘッダーをスキップ
+        for row in reader:
+            if row:  # 空行をスキップ
+                unique_consumers.add(row[0])
+
+    return list(unique_consumers)
+
 def load_and_clean_csv(file_path):
     """CSVを読み込んで、日付列を処理し、NaT行を除外"""
     if not os.path.isfile(file_path):
@@ -72,7 +95,7 @@ def calc_hourly_stats(pivot):
     yerr = hourly_std.values
     return x, y, yerr
 
-def plot_hourly_stats(x, y, yerr, label, linestyle):
+def plot_hourly_stats(x, y, yerr, linestyle):
     """エラーバーつきの折れ線グラフを描画"""
-    plt.plot(x, y, label=label, linestyle=linestyle)
+    plt.plot(x, y, linestyle=linestyle)
     plt.fill_between(x, np.array(y) - np.array(yerr), np.array(y) + np.array(yerr), alpha=0.1)

@@ -73,6 +73,7 @@ for _, row in df_list.iterrows():
 # Mixupによる合成（契約電力区分ごとに）
 random.seed(42)
 mixup_index = 1
+original_index =1
 
 plt.figure()
 plt.subplots_adjust(left=0.1, right=0.98)
@@ -87,11 +88,12 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
     # 元データをまず追加
     for p in profiles:
         x, y, yerr = calc_hourly_stats(p[0])
-        consumer_name = f"{p[1]}_{p[2]}"
-        plot_hourly_stats(x, y, yerr, label=consumer_name, linestyle='-')
-        plot_hourly_stats(x, y, yerr, label=consumer_name, linestyle='-')
+        consumer_name = f"Original{original_index}_{p[1]}"
+        original_index += 1
+        plot_hourly_stats(x, y, yerr, linestyle='-')
+        plot_hourly_stats(x, y, yerr, linestyle='-')
         for h, m, s in zip(x, y, yerr):
-            output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
+            output_rows.append({'Consumer': consumer_name, 'Contract': contract_type, 'Hour': int(h), 'Mean': m, 'Std': s})
 
     for i in range(num_synthetic):
         if len(profiles) < 2:
@@ -105,14 +107,13 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
 
         x, y, yerr = calc_hourly_stats(pivot_mix)
         
-        consumer_name = f"{a[1]}_{a[2]} + {b[1]}_{b[2]}"
-        label = f"Mixup_{mixup_index} ({contract_type}, lam={lam:.2f}): {consumer_name}"
+        consumer_name = f"Mixup{mixup_index}_{a[1]}_{b[1]}_lam={lam:.2f}"
         mixup_index += 1
-        plot_hourly_stats(x, y, yerr, label=consumer_name, linestyle='--')
-        plot_hourly_stats(x, y, yerr, label=consumer_name, linestyle='--')
+        plot_hourly_stats(x, y, yerr, linestyle='--')
+        plot_hourly_stats(x, y, yerr, linestyle='--')
 
         for h, m, s in zip(x, y, yerr):
-            output_rows.append({'Consumer': label, 'Hour': int(h), 'Mean': m, 'Std': s})
+            output_rows.append({'Consumer': consumer_name, 'Contract': contract_type, 'Hour': int(h), 'Mean': m, 'Std': s})
 
     plt.xlabel('Time')
     plt.xlim(1, 24)
@@ -127,7 +128,7 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
 # 結果出力
 valid_file_count = len(set(row['Consumer'] for row in output_rows if not str(row['Consumer']).startswith('Mixup')))
 synthetic_count = len(set(row['Consumer'] for row in output_rows if str(row['Consumer']).startswith('Mixup')))
-print('有効ファイル数（年ごとの組み合わせ）:', valid_file_count)
+print('有効ファイル数:', valid_file_count)
 print('合成された需要家数:', synthetic_count)
 print('合計需要家数:', valid_file_count + synthetic_count)
 print('除外されたファイルの数:', len(excluded_files))
@@ -146,8 +147,8 @@ for consumer, group in output_df.groupby('Consumer'):
     x = group['Hour'].values
     y = group['Mean'].values
     yerr = group['Std'].values
-    linestyle = '--' if consumer.startswith('Mixup_') else '-'
-    plot_hourly_stats(x, y, yerr, label=consumer, linestyle=linestyle)
+    linestyle = '--' if consumer.startswith('Mixup') else '-'
+    plot_hourly_stats(x, y, yerr, linestyle=linestyle)
 plt.xlabel('Time')
 plt.xlim(1, 24)
 plt.xticks(range(1, 25))
@@ -159,14 +160,14 @@ os.makedirs('output', exist_ok=True)
 plt.savefig("output/power_consumption_hourly_mixup_restricted.png")
 
 # オリジナルデータをプロット
-df_original = output_df[~output_df['Consumer'].str.startswith('Mixup_')]
+df_original = output_df[~output_df['Consumer'].str.startswith('Mixup')]
 plt.figure()
 plt.subplots_adjust(left=0.1, right=0.97)
 for consumer, group in df_original.groupby('Consumer'):
     x = group['Hour'].values
     y = group['Mean'].values
     yerr = group['Std'].values
-    plot_hourly_stats(x, y, yerr, label=consumer, linestyle='-')
+    plot_hourly_stats(x, y, yerr, linestyle='-')
 plt.xlabel('Time')
 plt.xlim(1, 24)
 plt.xticks(range(1, 25))
@@ -178,14 +179,14 @@ os.makedirs('output', exist_ok=True)
 plt.savefig("output/power_consumption_hourly_all.png")
 
 # Mixupのみのデータを抽出してプロット
-df_mixup = output_df[output_df['Consumer'].str.startswith('Mixup_')]
+df_mixup = output_df[output_df['Consumer'].str.startswith('Mixup')]
 plt.figure()
 plt.subplots_adjust(left=0.1, right=0.97)
 for consumer, group in df_mixup.groupby('Consumer'):
     x = group['Hour'].values
     y = group['Mean'].values
     yerr = group['Std'].values
-    plot_hourly_stats(x, y, yerr, label=consumer, linestyle='--')
+    plot_hourly_stats(x, y, yerr, linestyle='--')
 plt.xlabel('Time')
 plt.xlim(1, 24)
 plt.xticks(range(1, 25))
