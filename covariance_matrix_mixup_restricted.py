@@ -71,7 +71,7 @@ for _, row in df_list.iterrows():
             continue  # データ不足
 
         y = pivot.loc[target_hour].values
-        consumer_profiles_by_contract[contract_type].append((None, y, None, consumer_name, year))
+        consumer_profiles_by_contract[contract_type].append((y, consumer_name, year))
         file_valid = True
     
     if not file_valid:
@@ -92,9 +92,9 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
 
     # 元データをまず追加
     for p in profiles:
-        consumer_name = f"Original{original_index}_{p[3]}"
+        consumer_name = f"Original{original_index}_{p[1]}"
         original_index += 1
-        data_matrix.append(p[1])
+        data_matrix.append(p[0])
         all_names.append(consumer_name)  # 例: ConsumerA_2022
 
     # Mixup 合成
@@ -103,8 +103,8 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
             continue
         a, b = random.sample(profiles, 2)
         lam = random.uniform(0.3, 0.7)
-        y_mix = lam * a[1] + (1 - lam) * b[1]
-        label = f"Mixup{mixup_index}_{a[3]}_{b[3]}_lam={lam:.2f}"
+        y_mix = lam * a[0] + (1 - lam) * b[0]
+        label = f"Mixup{mixup_index}_{a[1]}_{b[1]}_lam={lam:.2f}"
         data_matrix.append(y_mix)
         all_names.append(label)
         mixup_index += 1
