@@ -99,3 +99,72 @@ def plot_hourly_stats(x, y, yerr, linestyle):
     """エラーバーつきの折れ線グラフを描画"""
     plt.plot(x, y, linestyle=linestyle)
     plt.fill_between(x, np.array(y) - np.array(yerr), np.array(y) + np.array(yerr), alpha=0.1)
+
+def process_files(
+    df_list,
+    data_dir,
+    target_start_md,
+    target_end_md,
+    expected_rows,
+    target_days,
+    consumer_profiles_by_contract,
+    excluded_files,
+    contract_type_key='契約電力',
+    target_hour=None
+):
+    need_time_zfill = target_hour is not None  # target_hour指定時は必ずゼロ埋め
+
+    for _, row in df_list.iterrows():
+        file_name = row['ファイル名']
+        consumer_name = extract_consumer_name(file_name)
+        contract_type = row[contract_type_key]
+        path = os.path.join(data_dir, file_name)
+
+        df_raw = load_and_clean_csv(path)
+        if df_raw is None:
+            continue
+
+        # 日付加工
+        df_raw["計測日"] = pd.to_datetime(df_raw["計測日"], errors='coerce', format='%Y/%m/%d')
+        df_raw = df_raw.dropna(subset=["計測日"])
+        df_raw["年"] = df_raw["計測日"].dt.year
+        df_raw["月日"] = df_raw["計測日"].dt.strftime('%m-%d')
+
+        if need_time_zfill:
+            df_raw["計測時間"] = df_raw["計測時間"].astype(str).str.zfill(2)
+
+        file_valid = False
+
+        for year in sorted(df_raw["年"].unique()):
+            target_start = pd.to_datetime(f"{year}-{target_start_md}")
+            target_end = pd.to_datetime(f"{year}-{target_end_md}")
+            target_dates = pd.date_range(start=target_start, end=target_end)
+
+            df_period = is_complete_year_data(df_raw, target_dates, expected_rows)
+            if df_period is None:
+                continue
+
+            pivot = make_pivot(df_period)
+            pivot.index = (
+                pivot.index.astype(str)
+                .str.extract(r'(\d{1,2})')[0]
+                .astype(int)
+                .astype(str)
+                .str.zfill(2)
+            )
+
+            if pivot.shape[1] != target_days or pivot.isnull().values.any():
+                continue
+
+            if target_hour is not None:
+                if target_hour not in pivot.index:
+                    continue
+                y = pivot.loc[target_hour].values
+                consumer_profiles_by_contract[contract_type].append((y, consumer_name, year))
+            else:
+                consumer_profiles_by_contract[contract_type].append((pivot, consumer_name, year))
+
+            file_valid = True
+
+        if not file_valid:
+            excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
