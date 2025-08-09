@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import os
 from utils import (
     load_and_clean_csv, extract_consumer_name,
-    is_complete_year_data, calc_hourly_stats, plot_hourly_stats
+    is_complete_year_data, calc_hourly_stats, plot_hourly_stats,
+    make_pivot
 )
 
 # データリスト読み込み
@@ -47,8 +48,18 @@ for _, row in df_list.iterrows():
             continue
 
         pivot = make_pivot(df_period)
+        pivot.index = (
+            pivot.index.astype(str)
+            .str.extract(r'(\d{1,2})')[0]
+            .astype(int)
+            .astype(str)
+            .str.zfill(2)
+        )
+
+        if pivot.shape[1] != target_days or pivot.isnull().values.any():
+            continue
         x, y, yerr = calc_hourly_stats(pivot)
-        plot_hourly_stats(x, y, yerr, label=f"{consumer_name} ({year})")
+        plot_hourly_stats(x, y, yerr, linestyle="-")
 
         for h, m, s in zip(x, y, yerr):
             output_rows.append({'Consumer': consumer_name, 'Year': year, 'Hour': int(h), 'Mean': m, 'Std': s})
@@ -61,7 +72,8 @@ for _, row in df_list.iterrows():
 # 結果出力
 valid_file_count = len(set([row['Consumer'] + str(row['Year']) for row in output_rows]))
 print('有効ファイル数（年ごとの組み合わせ）:', valid_file_count)
-print(f'\n除外されたファイルの数:', len(excluded_files))
+print(f'除外されたファイルの数:', len(excluded_files))
+print(excluded_files)
 
 # グラフ保存
 plt.xlabel('Time')
