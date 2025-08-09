@@ -4,15 +4,7 @@ import os
 import random
 import numpy as np
 import seaborn as sns
-from utils import (
-    process_files,
-    extract_consumer_name,
-    load_and_clean_csv,
-    filter_target_dates,
-    make_pivot,
-    is_complete_year_data,
-    calc_hourly_stats
-)
+from utils import process_files
 
 # --- 入力（ターミナルから時間帯を指定） ---
 user_input = input("共分散行列を計算したい時間帯（0〜23）を入力してください（未入力なら12）: ")

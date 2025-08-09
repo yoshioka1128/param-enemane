@@ -1,25 +1,14 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import os
 import random
 import numpy as np
-from utils import (
-    process_files,
-    extract_consumer_name,
-    load_and_clean_csv,
-    filter_target_dates,
-    make_pivot,
-    is_complete_year_data,
-    calc_hourly_stats,
-)
+from utils import process_files, calc_hourly_stats
 
 # データリスト読み込み
 df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
 df_list.columns = df_list.columns.str.strip()
 
 data_dir = 'OPEN_DATA_60/raw'
-plt.figure()
-plt.subplots_adjust(left=0.1, right=0.98)
 
 output_rows = []
 excluded_files = []
@@ -43,23 +32,39 @@ process_files(
     excluded_files
 )
 
+# Mixupによる合成（契約電力区分ごとに）
+random.seed(42)
+mixup_index = 1
 original_index =1
 
-plt.figure()
-plt.subplots_adjust(left=0.1, right=0.98)
-
 for contract_type, profiles in consumer_profiles_by_contract.items():
-    plt.figure()
-    plt.subplots_adjust(left=0.1, right=0.98)
-
     num_original = len(profiles)
     num_synthetic = int(num_original * 2.4)
+    print(f"[{contract_type}] original: {num_original}, mixup: {num_synthetic}")
 
     # 元データをまず追加
     for p in profiles:
         x, y, yerr = calc_hourly_stats(p[0])
         consumer_name = f"Original{original_index}_{p[1]}"
         original_index += 1
+        for h, m, s in zip(x, y, yerr):
+            output_rows.append({'Consumer': consumer_name, 'Contract': contract_type, 'Hour': int(h), 'Mean': m, 'Std': s})
+
+    for i in range(num_synthetic):
+        if len(profiles) < 2:
+            continue
+        a, b = random.sample(profiles, 2)
+        pivot_a = a[0].copy()
+        pivot_b = b[0].copy()
+        lam = random.uniform(0.3, 0.7)
+        pivot_mix_values = lam * pivot_a.values + (1 - lam) * pivot_b.values
+        pivot_mix = pd.DataFrame(pivot_mix_values, index=pivot_a.index)
+
+        x, y, yerr = calc_hourly_stats(pivot_mix)
+        
+        consumer_name = f"Mixup{mixup_index}_{a[1]}_{b[1]}_lam={lam:.2f}"
+        mixup_index += 1
+
         for h, m, s in zip(x, y, yerr):
             output_rows.append({'Consumer': consumer_name, 'Contract': contract_type, 'Hour': int(h), 'Mean': m, 'Std': s})
 

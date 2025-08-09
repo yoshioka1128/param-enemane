@@ -3,16 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import random
 import numpy as np
-from utils import (
-    process_files,
-    extract_consumer_name,
-    load_and_clean_csv,
-    filter_target_dates,
-    make_pivot,
-    is_complete_year_data,
-    calc_hourly_stats,
-    plot_hourly_stats,
-)
+from utils import process_files, calc_hourly_stats, plot_hourly_stats
 
 # データリスト読み込み
 df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
