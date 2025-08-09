@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import os
 from utils import (
     load_and_clean_csv, extract_consumer_name,
-    is_complete_year_data, calc_hourly_stats, plot_hourly_stats
+    is_complete_year_data, calc_hourly_stats, plot_hourly_stats,
+    make_pivot
 )
 
 # データリスト読み込み
@@ -48,7 +49,7 @@ for _, row in df_list.iterrows():
 
         pivot = make_pivot(df_period)
         x, y, yerr = calc_hourly_stats(pivot)
-        plot_hourly_stats(x, y, yerr, label=f"{consumer_name} ({year})")
+        plot_hourly_stats(x, y, yerr)
 
         for h, m, s in zip(x, y, yerr):
             output_rows.append({'Consumer': consumer_name, 'Year': year, 'Hour': int(h), 'Mean': m, 'Std': s})
