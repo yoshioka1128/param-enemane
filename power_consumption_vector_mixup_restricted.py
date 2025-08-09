@@ -86,7 +86,6 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
     plt.savefig(f"output/power_consumption_hourly_mixup_restricted_{contract_type}.png")
     plt.close()
             
-
 # 結果出力
 valid_file_count = len(set(row['Consumer'] for row in output_rows if not str(row['Consumer']).startswith('Mixup')))
 synthetic_count = len(set(row['Consumer'] for row in output_rows if str(row['Consumer']).startswith('Mixup')))

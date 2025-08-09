@@ -38,8 +38,18 @@ for _, row in df_list.iterrows():
         continue
 
     pivot = make_pivot(df)
+#    pivot.index = (
+#        pivot.index.astype(str)
+#        .str.extract(r'(\d{1,2})')[0]
+#        .astype(int)
+#        .astype(str)
+#        .str.zfill(2)
+#    )
+#    if pivot.shape[1] != target_days or pivot.isnull().values.any():
+#        continue
+
     x, y, yerr = calc_hourly_stats(pivot)
-    plot_hourly_stats(x, y, yerr, label=consumer_name)
+    plot_hourly_stats(x, y, yerr, linestyle="-")
 
     for h, m, s in zip(x, y, yerr):
         output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
@@ -56,12 +66,12 @@ plt.xlim(1,24)
 plt.ylabel('Predicted Negawatt [kWh]')
 plt.ylim(-1,800)
 plt.grid(True)
-plt.savefig("output/predicted_negawatt_hourly_stats_2023.png")
+plt.savefig("output/power_consumption_hourly_2013.png")
 plt.show()
 plt.close()
 
 # CSV出力
 output_df = pd.DataFrame(output_rows)
 os.makedirs('output', exist_ok=True)
-output_df.to_csv('output/predicted_negawatt_hourly_stats_2023.csv', index=False)
+output_df.to_csv('output/power_consumption_hourly_2013.csv', index=False)
 

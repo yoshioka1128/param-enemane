@@ -60,6 +60,15 @@ for _, row in df_list.iterrows():
             continue  # データ不完全な年はスキップ
 
         pivot = make_pivot(df_period)
+        pivot.index = (
+            pivot.index.astype(str)
+            .str.extract(r'(\d{1,2})')[0]
+            .astype(int)
+            .astype(str)
+            .str.zfill(2)
+        )
+        if pivot.shape[1] != target_days or pivot.isnull().values.any():
+            continue
 
         # 時間表記を2桁に揃える（例：'1' → '01'）
         pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
@@ -83,7 +92,7 @@ for pivot, consumer_name, year in consumer_profiles:
     # 元データをまず追加
     x, y, yerr = calc_hourly_stats(pivot)
     consumer_name = f"{consumer_name}_{year}"
-    plot_hourly_stats(x, y, yerr, label=consumer_name, linestyle='-')
+    plot_hourly_stats(x, y, yerr, linestyle='-')
     for h, m, s in zip(x, y, yerr):
         output_rows.append({'Consumer': consumer_name, 'Hour': int(h), 'Mean': m, 'Std': s})
 
@@ -102,7 +111,7 @@ for i in range(num_synthetic):
     consumer_name = f"{a[1]}_{a[2]} + {b[1]}_{b[2]}"
     label = f"Mixup_{mixup_index}, lam={lam:.2f}): {consumer_name}"
     mixup_index += 1
-    plot_hourly_stats(x, y, yerr, label=consumer_name, linestyle='--')
+    plot_hourly_stats(x, y, yerr, linestyle='--')
 
     for h, m, s in zip(x, y, yerr):
         output_rows.append({'Consumer': label, 'Hour': int(h), 'Mean': m, 'Std': s})
@@ -124,14 +133,14 @@ plt.ylim(-1, 800)
 plt.title('Original(solid) + Mixup(broken)')
 plt.grid(True)
 os.makedirs('output', exist_ok=True)
-plt.savefig("output/predicted_negawatt_apr_may_mixup.png")
+plt.savefig("output/power_consumption_hourly_mixup.png")
 plt.show()
 plt.close()
 
 # CSV出力
 output_df = pd.DataFrame(output_rows)
 os.makedirs('output', exist_ok=True)
-csv_path = 'output/predicted_negawatt_hourly_stats_mixup.csv'
+csv_path = 'output/power_consumption_hourly_mixup.csv'
 output_df.to_csv(csv_path, index=False)
 
 # Mixupのみのデータを抽出してプロット
@@ -143,7 +152,7 @@ for consumer, group in df_mixup.groupby(['Consumer']):
     x = group['Hour'].values
     y = group['Mean'].values
     yerr = group['Std'].values
-    plot_hourly_stats(x, y, yerr, label=consumer, linestyle='--')
+    plot_hourly_stats(x, y, yerr, linestyle='--')
 #    plt.plot(x, y, linestyle='--', label=consumer)
 #    plt.fill_between(x, y - yerr, y + yerr, alpha=0.1)
 
@@ -154,5 +163,5 @@ plt.ylabel('Predicted Negawatt [kWh]')
 plt.ylim(-1, 800)
 plt.title('Mixup Only')
 plt.grid(True)
-plt.savefig("output/predicted_negawatt_apr_may_mixup_only.png")
+plt.savefig("output/power_consumption_hourly_mixup_only.png")
 plt.show()
