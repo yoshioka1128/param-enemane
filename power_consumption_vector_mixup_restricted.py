@@ -37,9 +37,6 @@ random.seed(42)
 mixup_index = 1
 original_index =1
 
-plt.figure()
-plt.subplots_adjust(left=0.1, right=0.98)
-
 for contract_type, profiles in consumer_profiles_by_contract.items():
     plt.figure()
     plt.subplots_adjust(left=0.1, right=0.98)
@@ -52,7 +49,6 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         x, y, yerr = calc_hourly_stats(p[0])
         consumer_name = f"Original{original_index}_{p[1]}"
         original_index += 1
-        plot_hourly_stats(x, y, yerr, linestyle='-')
         plot_hourly_stats(x, y, yerr, linestyle='-')
         for h, m, s in zip(x, y, yerr):
             output_rows.append({'Consumer': consumer_name, 'Contract': contract_type, 'Hour': int(h), 'Mean': m, 'Std': s})
@@ -71,7 +67,6 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
         
         consumer_name = f"Mixup{mixup_index}_{a[1]}_{b[1]}_lam={lam:.2f}"
         mixup_index += 1
-        plot_hourly_stats(x, y, yerr, linestyle='--')
         plot_hourly_stats(x, y, yerr, linestyle='--')
 
         for h, m, s in zip(x, y, yerr):
@@ -137,7 +132,7 @@ plt.ylim(-1, 800)
 plt.title('Original')
 plt.grid(True)
 os.makedirs('output', exist_ok=True)
-plt.savefig("output/power_consumption_hourly_all.png")
+plt.savefig("output/power_consumption_hourly_original_only.png")
 
 # Mixupのみのデータを抽出してプロット
 df_mixup = output_df[output_df['Consumer'].str.startswith('Mixup')]
