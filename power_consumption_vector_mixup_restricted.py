@@ -3,15 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import random
 import numpy as np
-from utils import (
-    extract_consumer_name,
-    load_and_clean_csv,
-    filter_target_dates,
-    make_pivot,
-    is_complete_year_data,
-    calc_hourly_stats,
-    plot_hourly_stats,
-)
+from utils import process_files, calc_hourly_stats, plot_hourly_stats
 
 # データリスト読み込み
 df_list = pd.read_csv('OPEN_DATA_60/list_60.csv', encoding='cp932')
@@ -32,43 +24,13 @@ expected_rows = target_days * hours_per_day
 # 契約電力区分ごとのプロファイル格納用辞書
 consumer_profiles_by_contract = {'低圧': [], '高圧小口': [], '高圧': []}
 
-for _, row in df_list.iterrows():
-    file_name = row['ファイル名']
-    consumer_name = extract_consumer_name(file_name)
-    contract_type = row['契約電力']
-    path = os.path.join(data_dir, file_name)
-
-    df_raw = load_and_clean_csv(path)
-    if df_raw is None:
-        continue
-
-    df_raw["計測日"] = pd.to_datetime(df_raw["計測日"], errors='coerce', format='%Y/%m/%d')
-    df_raw = df_raw.dropna(subset=["計測日"])
-    df_raw["年"] = df_raw["計測日"].dt.year
-    df_raw["月日"] = df_raw["計測日"].dt.strftime('%m-%d')
-    file_valid = False
-
-    for year in sorted(df_raw["年"].unique()):
-        target_start = pd.to_datetime(f"{year}-{target_start_md}")
-        target_end = pd.to_datetime(f"{year}-{target_end_md}")
-        target_dates = pd.date_range(start=target_start, end=target_end)
-
-        df_period = is_complete_year_data(df_raw, target_dates, expected_rows)
-        if df_period is None:
-            continue  # データ不完全な年はスキップ
-
-        pivot = make_pivot(df_period)
-
-        # 時間表記を2桁に揃える（例：'1' → '01'）
-        pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
-        if pivot.shape[1] != target_days or pivot.isnull().values.any():
-            continue  # データ不足
-
-        consumer_profiles_by_contract[contract_type].append((pivot, consumer_name, year))
-        file_valid = True
-
-    if not file_valid:
-        excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
+# --- データ読み込み ---
+process_files(
+    df_list, data_dir, target_start_md, target_end_md,
+    expected_rows, target_days,
+    consumer_profiles_by_contract,
+    excluded_files
+)
 
 # Mixupによる合成（契約電力区分ごとに）
 random.seed(42)
@@ -124,7 +86,6 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
     plt.savefig(f"output/power_consumption_hourly_mixup_restricted_{contract_type}.png")
     plt.close()
             
-
 # 結果出力
 valid_file_count = len(set(row['Consumer'] for row in output_rows if not str(row['Consumer']).startswith('Mixup')))
 synthetic_count = len(set(row['Consumer'] for row in output_rows if str(row['Consumer']).startswith('Mixup')))

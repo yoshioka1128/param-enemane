@@ -4,14 +4,7 @@ import os
 import random
 import numpy as np
 import seaborn as sns
-from utils import (
-    extract_consumer_name,
-    load_and_clean_csv,
-    filter_target_dates,
-    make_pivot,
-    is_complete_year_data,
-    calc_hourly_stats
-)
+from utils import process_files
 
 # --- 入力（ターミナルから時間帯を指定） ---
 user_input = input("共分散行列を計算したい時間帯（0〜23）を入力してください（未入力なら12）: ")
@@ -34,48 +27,13 @@ consumer_profiles_by_contract = {'低圧': [], '高圧小口': [], '高圧': []}
 excluded_files = []
 
 # --- データ読み込み ---
-for _, row in df_list.iterrows():
-    file_name = row['ファイル名']
-    consumer_name = extract_consumer_name(file_name)
-    contract_type = row['契約電力']
-    path = os.path.join(data_dir, file_name)
-
-    df_raw = load_and_clean_csv(path)
-    if df_raw is None:
-        continue
-
-    df_raw["計測日"] = pd.to_datetime(df_raw["計測日"], errors='coerce', format='%Y/%m/%d')
-    df_raw = df_raw.dropna(subset=["計測日"])
-    df_raw["年"] = df_raw["計測日"].dt.year
-    df_raw["月日"] = df_raw["計測日"].dt.strftime('%m-%d')
-    df_raw["計測時間"] = df_raw["計測時間"].astype(str).str.zfill(2)
-    file_valid = False
-
-    for year in sorted(df_raw["年"].unique()):
-        target_start = pd.to_datetime(f"{year}-{target_start_md}")
-        target_end = pd.to_datetime(f"{year}-{target_end_md}")
-        target_dates = pd.date_range(start=target_start, end=target_end)
-
-        df_period = is_complete_year_data(df_raw, target_dates, expected_rows)
-        if df_period is None:
-            continue  # データ不完全な年はスキップ
-
-        pivot = make_pivot(df_period)
-        
-        # 時間表記を2桁に揃える（例：'1' → '01'）
-        pivot.index = pivot.index.astype(str).str.extract(r'(\d{1,2})')[0].astype(int).astype(str).str.zfill(2)
-        if pivot.shape[1] != target_days or pivot.isnull().values.any():
-            continue  # データ不足
-
-        if target_hour not in pivot.index or pivot.shape[1] != target_days:
-            continue  # データ不足
-
-        y = pivot.loc[target_hour].values
-        consumer_profiles_by_contract[contract_type].append((None, y, None, consumer_name, year))
-        file_valid = True
-    
-    if not file_valid:
-        excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
+process_files(
+    df_list, data_dir, target_start_md, target_end_md,
+    expected_rows, target_days,
+    consumer_profiles_by_contract,
+    excluded_files,
+    target_hour=target_hour
+)
 
 # --- Mixup 拡張 + 共分散計算 --------------------------------------------------
 mixup_index = 1
@@ -92,9 +50,9 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
 
     # 元データをまず追加
     for p in profiles:
-        consumer_name = f"Original{original_index}_{p[3]}"
+        consumer_name = f"Original{original_index}_{p[1]}"
         original_index += 1
-        data_matrix.append(p[1])
+        data_matrix.append(p[0])
         all_names.append(consumer_name)  # 例: ConsumerA_2022
 
     # Mixup 合成
@@ -103,8 +61,8 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
             continue
         a, b = random.sample(profiles, 2)
         lam = random.uniform(0.3, 0.7)
-        y_mix = lam * a[1] + (1 - lam) * b[1]
-        label = f"Mixup{mixup_index}_{a[3]}_{b[3]}_lam={lam:.2f}"
+        y_mix = lam * a[0] + (1 - lam) * b[0]
+        label = f"Mixup{mixup_index}_{a[1]}_{b[1]}_lam={lam:.2f}"
         data_matrix.append(y_mix)
         all_names.append(label)
         mixup_index += 1
