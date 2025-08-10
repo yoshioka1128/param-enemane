@@ -7,8 +7,8 @@ import random
 import utils
 
 # ---------- パラメータ ----------
-L = 2144  # ここで選択する需要家数を指定 (1 <= L <= 2143)
-seed = 42
+L = int(input("input problem size: (210)") or 210)
+seed = int(input("input random number seed: (42)") or 42)
 random.seed(seed)  # 再現性確保のための乱数シード
 
 # ---------- 平均値の計算 ----------
@@ -23,7 +23,7 @@ if not files:
 
 cov_df_first = pd.read_csv(files[0], index_col=0)
 all_original_cols = [c for c in cov_df_first.columns if c.startswith("Original")]
-print('maximum size', len(all_original_cols))
+print('maximum problem size', len(all_original_cols))
 
 if L > len(all_original_cols):
     raise ValueError(f"L={L} は需要家数 {len(all_original_cols)} を超えています。")
@@ -86,10 +86,10 @@ plt.xlabel("Time")
 plt.xlim(1, 24)
 plt.xticks(range(1, 25))
 plt.ylim(bottom=0, top=None)
-plt.ylabel("Mean Power Consumption [kWh]")
+plt.ylabel("Power Consumption [kWh]")
 plt.title(rf"random seed: {seed} for $L=${L}")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
 plt.savefig(f"output/hourly_consumer_mean_std_L{L}_seed{seed}.png")
-plt.show()
+#plt.show()
