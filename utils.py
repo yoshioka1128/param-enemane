@@ -95,9 +95,9 @@ def calc_hourly_stats(pivot):
     yerr = hourly_std.values
     return x, y, yerr
 
-def plot_hourly_stats(x, y, yerr):
+def plot_hourly_stats(x, y, yerr, linestyle):
     """エラーバーつきの折れ線グラフを描画"""
-    plt.plot(x, y)
+    plt.plot(x, y, linestyle=linestyle)
     plt.fill_between(x, np.array(y) - np.array(yerr), np.array(y) + np.array(yerr), alpha=0.1)
 
 def process_files(
