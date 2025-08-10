@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import numpy as np
+import re
 
 plt.rcParams['xtick.direction'] = 'in'
 plt.rcParams['ytick.direction'] = 'in'
@@ -168,3 +169,21 @@ def process_files(
 
         if not file_valid:
             excluded_files.append(f"{file_name}（データ不足または対象期間なし）")
+
+import pandas as pd
+import numpy as np
+
+def check_variance_match_single(hour, cov_df_original, df_original, original_cols):
+    """1つの共分散行列と元データの分散を比較する"""
+    diag_cov = np.diag(cov_df_original.to_numpy())
+
+    df_hour = df_original[df_original["Hour"] == hour]
+    df_hour_sorted = df_hour.set_index("Consumer").loc[original_cols]
+    std_sq_from_file = (df_hour_sorted["Std"] ** 2).to_numpy()
+
+    if np.allclose(std_sq_from_file, diag_cov):
+        print(f"[OK] Hour {hour}: variances match")
+    else:
+        print(f"[NG] Hour {hour}: variances differ")
+        diff = std_sq_from_file - diag_cov
+        print("Max abs diff:", np.max(np.abs(diff)))
