@@ -3,5 +3,6 @@ __pycache__/
 *.py[cod]
 .DS_Store
 output/covariance_matrix*.csv
+output/covariance_*mixup_restricted.png
 # Emacsの一時ファイルを無視
 *#
