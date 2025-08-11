@@ -6,7 +6,7 @@ import re
 import utils
 
 # ---------- 平均値の計算 ----------
-input_file = "output/power_consumption_hourly_mixup_restricted.csv"
+input_file = "param/power_consumption_hourly_mixup_restricted.csv"
 df = pd.read_csv(input_file)
 
 files = sorted(glob.glob("output/covariance_matrix_time*_mixup_restricted.csv"))

@@ -60,8 +60,8 @@ print("data_matrix.shape =", np.array(data_matrix).shape)
 # --- 保存と可視化 ---
 os.makedirs("output", exist_ok=True)
 cov_df = pd.DataFrame(cov_matrix, index=all_names, columns=all_names)
-cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_original.csv", encoding='utf-8-sig')
-print(f"共分散行列を 'output/covariance_matrix_time{target_hour}_original.csv' に保存しました。")
+#cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_original.csv", encoding='utf-8-sig')
+#print(f"共分散行列を 'output/covariance_matrix_time{target_hour}_original.csv' に保存しました。")
 
 plt.figure()
 sns.heatmap(cov_df, annot=False, cmap='coolwarm', xticklabels=False, yticklabels=False, vmin=-5, vmax=5,

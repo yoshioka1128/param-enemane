@@ -67,8 +67,8 @@ if len(data_matrix) > 1:
     cov_df = pd.DataFrame(cov_matrix, index=consumer_names, columns=consumer_names)
     
     # CSVとして保存
-    cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_2023.csv", encoding='utf-8-sig')
-    print(f"共分散行列を 'covariance_matrix_time{target_hour}_2023.csv' に保存しました。e")
+#    cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_2023.csv", encoding='utf-8-sig')
+#    print(f"共分散行列を 'covariance_matrix_time{target_hour}_2023.csv' に保存しました。e")
 
     # ヒートマップとして保存
     plt.figure()

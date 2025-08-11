@@ -36,6 +36,7 @@ process_files(
 random.seed(42)
 mixup_index = 1
 original_index =1
+os.makedirs('output', exist_ok=True)
 
 for contract_type, profiles in consumer_profiles_by_contract.items():
     plt.figure()
@@ -91,8 +92,8 @@ print('除外されたファイルの数:', len(excluded_files))
 
 # CSV出力
 output_df = pd.DataFrame(output_rows)
-os.makedirs('output', exist_ok=True)
-csv_path = 'output/power_consumption_hourly_mixup_restricted.csv'
+os.makedirs('param', exist_ok=True)
+csv_path = 'param/power_consumption_hourly_mixup_restricted.csv'
 output_df.to_csv(csv_path, index=False)
 
 

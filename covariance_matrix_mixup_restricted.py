@@ -72,15 +72,16 @@ cov_matrix = np.cov(np.array(data_matrix), ddof=0)
 print("data_matrix.shape =", np.array(data_matrix).shape)
 
 # --- 保存と可視化 ---
-os.makedirs("output", exist_ok=True)
+os.makedirs("param", exist_ok=True)
 cov_df = pd.DataFrame(cov_matrix, index=all_names, columns=all_names)
-cov_df.to_csv(f"output/covariance_matrix_time{target_hour}_mixup_restricted.csv", encoding='utf-8-sig')
-print(f"共分散行列を 'output/covariance_matrix_time{target_hour}_mixup_restricted.csv' に保存しました。")
+cov_df.to_csv(f"param/covariance_matrix_time{target_hour}_mixup_restricted.csv", encoding='utf-8-sig')
+print(f"共分散行列を 'param/covariance_matrix_time{target_hour}_mixup_restricted.csv' に保存しました。")
 
 plt.figure()
 sns.heatmap(cov_df, annot=False, cmap='coolwarm', xticklabels=False, yticklabels=False, vmin=-5, vmax=5,
             cbar_kws={'label': 'Covariance'})
 
+os.makedirs("output", exist_ok=True)
 plt.title(f"Covariance Matrix with Mixup - Time {target_hour}")
 plt.xlabel("Consumer")
 plt.ylabel("Consumer")
