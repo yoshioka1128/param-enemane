@@ -187,3 +187,15 @@ def check_variance_match_single(hour, cov_df_original, df_original, original_col
         print(f"[NG] Hour {hour}: variances differ")
         diff = std_sq_from_file - diag_cov
         print("Max abs diff:", np.max(np.abs(diff)))
+
+def compare_lists(list1, list2):
+    if list1 == list2:
+        print("２つのリストは完全に一致しています。")
+        return
+
+    max_len = max(len(list1), len(list2))
+    for i in range(max_len):
+        val1 = list1[i] if i < len(list1) else None
+        val2 = list2[i] if i < len(list2) else None
+        if val1 != val2:
+            print(f"インデックス {i} が異なります: {val1} != {val2}")

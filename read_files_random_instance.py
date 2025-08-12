@@ -15,7 +15,7 @@ random.seed(seed)  # 再現性確保のための乱数シード
 input_file = "param/power_consumption_hourly_mixup_restricted.csv"
 df = pd.read_csv(input_file)
 
-files = sorted(glob.glob("output/covariance_matrix_time*_mixup_restricted.csv"))
+files = sorted(glob.glob("param/covariance_matrix_time*_mixup_restricted.csv"))
 
 # 共分散行列ファイルの先頭から需要家リストを取得
 if not files:
@@ -23,6 +23,8 @@ if not files:
 
 cov_df_first = pd.read_csv(files[0], index_col=0)
 all_original_cols = [c for c in cov_df_first.columns if c.startswith("Original")]
+original_consumers = df[df['Consumer'].str.startswith('Original')]['Consumer'].unique().tolist()
+utils.compare_lists(all_original_cols, original_consumers)
 print('maximum problem size', len(all_original_cols))
 
 if L > len(all_original_cols):

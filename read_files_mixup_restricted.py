@@ -9,7 +9,7 @@ import utils
 input_file = "param/power_consumption_hourly_mixup_restricted.csv"
 df = pd.read_csv(input_file)
 
-files = sorted(glob.glob("output/covariance_matrix_time*_mixup_restricted.csv"))
+files = sorted(glob.glob("param/covariance_matrix_time*_mixup_restricted.csv"))
 stats_list = []
 count_per_hour = None
 
