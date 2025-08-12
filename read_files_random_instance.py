@@ -32,6 +32,9 @@ if L > len(all_original_cols):
 
 # ---- ループ前に一度だけ選択 ----
 selected_originals = random.sample(all_original_cols, L)
+df_selected_originals = pd.DataFrame(selected_originals, columns=['Consumer'])
+df_selected_originals.to_csv(f"output/selected_originals_L{L}_seed{seed}.csv", index=False)
+print(f"output/selected_originals_L{L}_seed{seed}.csv に書き出しました。")
 
 stats_list = []
 count_per_hour = None
