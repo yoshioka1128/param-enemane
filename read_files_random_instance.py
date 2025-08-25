@@ -7,7 +7,7 @@ import random
 import utils
 
 # ---------- パラメータ ----------
-L = int(input("input problem size: (210)") or 210)
+L = int(input("input problem size: (756)") or 756)
 seed = int(input("input random number seed: (42)") or 42)
 random.seed(seed)  # 再現性確保のための乱数シード
 
