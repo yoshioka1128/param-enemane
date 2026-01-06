@@ -5,3 +5,4 @@ __pycache__/
 # Emacsの一時ファイルを無視
 *#
 param/
+param_4.0mixup/
