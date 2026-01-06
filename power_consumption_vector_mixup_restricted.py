@@ -34,6 +34,7 @@ process_files(
 
 # Mixupによる合成（契約電力区分ごとに）
 random.seed(42)
+mixuprate = 4.0
 mixup_index = 1
 original_index =1
 os.makedirs('output', exist_ok=True)
@@ -43,7 +44,7 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
     plt.subplots_adjust(left=0.1, right=0.98)
 
     num_original = len(profiles)
-    num_synthetic = int(num_original * 2.4)
+    num_synthetic = int(num_original * mixuprate)
 
     # 元データをまず追加
     for p in profiles:
@@ -79,7 +80,7 @@ for contract_type, profiles in consumer_profiles_by_contract.items():
     plt.ylabel('Power Consumption [kWh]')
     plt.ylim(-1, 800)
     plt.grid(True)
-    plt.savefig(f"output/power_consumption_hourly_mixup_restricted_{contract_type}.png")
+    plt.savefig(f"output/power_consumption_hourly_mixup_restricted_{contract_type}_large.png")
     plt.close()
             
 # 結果出力
@@ -92,8 +93,8 @@ print('除外されたファイルの数:', len(excluded_files))
 
 # CSV出力
 output_df = pd.DataFrame(output_rows)
-os.makedirs('param', exist_ok=True)
-csv_path = 'param/power_consumption_hourly_mixup_restricted.csv'
+os.makedirs(f'param_{mixuprate}', exist_ok=True)
+csv_path = f'param_{mixuprate}mixup/power_consumption_hourly_mixup_restricted_large.csv'
 output_df.to_csv(csv_path, index=False)
 
 
@@ -114,7 +115,7 @@ plt.ylim(-1, 800)
 plt.title('Original(solid) + Mixup(broken)')
 plt.grid(True)
 os.makedirs('output', exist_ok=True)
-plt.savefig("output/power_consumption_hourly_mixup_restricted.png")
+plt.savefig("output/power_consumption_hourly_mixup_restricted_large.png")
 
 # オリジナルデータをプロット
 df_original = output_df[~output_df['Consumer'].str.startswith('Mixup')]
@@ -133,7 +134,7 @@ plt.ylim(-1, 800)
 plt.title('Original')
 plt.grid(True)
 os.makedirs('output', exist_ok=True)
-plt.savefig("output/power_consumption_hourly_original_only.png")
+plt.savefig("output/power_consumption_hourly_original_only_large.png")
 
 # Mixupのみのデータを抽出してプロット
 df_mixup = output_df[output_df['Consumer'].str.startswith('Mixup')]
@@ -151,5 +152,5 @@ plt.ylabel('Power Consumption [kWh]')
 plt.ylim(-1, 800)
 plt.title('Mixup Only')
 plt.grid(True)
-plt.savefig("output/power_consumption_hourly_mixup_restricted_only.png")
+plt.savefig("output/power_consumption_hourly_mixup_restricted_only_large.png")
 plt.show()
