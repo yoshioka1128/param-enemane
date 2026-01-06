@@ -72,8 +72,8 @@ cov_matrix = np.cov(np.array(data_matrix), ddof=0)
 print("data_matrix.shape =", np.array(data_matrix).shape)
 
 # --- 保存と可視化 ---
-os.makedirs(f"param_{mixuprate}mixup", exist_ok=True)
-path = f"param_{mixuprate}mixup/covariance_matrix_time{target_hour}_mixup_restricted.npz"
+os.makedirs(f"param", exist_ok=True)
+path = f"param/covariance_matrix_time{target_hour}_mixup_restricted_large.npz"
 np.savez_compressed(path, cov=cov_matrix, names=np.array(all_names, dtype=object)
 )
 print(f"共分散行列を '{path}' に保存しました。")
@@ -94,6 +94,6 @@ plt.title(f"Covariance Matrix with Mixup - Time {target_hour}")
 plt.xlabel("Consumer")
 plt.ylabel("Consumer")
 plt.tight_layout()
-plt.savefig(f"output/covariance_heatmap_time{target_hour}_mixup_restricted.png")
-print(f"ヒートマップを 'output/covariance_heatmap_time{target_hour}_mixup_restricted.png' に保存しました。")
+plt.savefig(f"output/covariance_heatmap_time{target_hour}_mixup_restricted_large.png")
+print(f"ヒートマップを 'output/covariance_heatmap_time{target_hour}_mixup_restricted_large.png' に保存しました。")
 #plt.show()
