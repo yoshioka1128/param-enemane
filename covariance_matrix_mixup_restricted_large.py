@@ -74,8 +74,7 @@ print("data_matrix.shape =", np.array(data_matrix).shape)
 # --- 保存と可視化 ---
 os.makedirs(f"param", exist_ok=True)
 path = f"param/covariance_matrix_time{target_hour}_mixup_restricted_large.npz"
-np.savez_compressed(path, cov=cov_matrix, names=np.array(all_names, dtype=object)
-)
+np.savez_compressed(path, cov=cov_matrix, names=np.array(all_names, dtype=object))
 print(f"共分散行列を '{path}' に保存しました。")
 
 #with np.load(path, allow_pickle=True) as data:

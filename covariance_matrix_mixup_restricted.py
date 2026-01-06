@@ -73,6 +73,10 @@ print("data_matrix.shape =", np.array(data_matrix).shape)
 
 # --- 保存と可視化 ---
 os.makedirs("param", exist_ok=True)
+path = f"param/covariance_matrix_time{target_hour}_mixup_restricted.npz"
+np.savez_compressed(path, cov=cov_matrix, names=np.array(all_names, dtype=object))
+print(f"共分散行列を '{path}' に保存しました。")
+
 cov_df = pd.DataFrame(cov_matrix, index=all_names, columns=all_names)
 cov_df.to_csv(f"param/covariance_matrix_time{target_hour}_mixup_restricted.csv", encoding='utf-8-sig')
 print(f"共分散行列を 'param/covariance_matrix_time{target_hour}_mixup_restricted.csv' に保存しました。")
